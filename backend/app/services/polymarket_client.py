@@ -197,7 +197,7 @@ class PolymarketClient:
         """Fetch REAL prices from CLOB API - returns empty dict to use fallback"""
         return {}
 
-async def _async_post(self, url: str, json=None, **kwargs) -> Dict[str, Any]:
+    async def _async_post(self, url: str, json=None, **kwargs) -> Dict[str, Any]:
         """Run sync POST in thread - compatible with asyncio"""
         def _sync_post():
             try:
