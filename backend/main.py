@@ -103,19 +103,40 @@ async def trades_recent(limit: int = 10):
         # Transform markets into trade-like format to show active market data
         trades = []
         for i, market in enumerate(markets):
+            # Get volume - handle empty strings
             volume = market.get("volume_24h", 0)
             if not volume or volume == "":
                 volume = 0
             else:
-                volume = float(volume) if isinstance(volume, str) else volume
+                try:
+                    volume = float(volume) if isinstance(volume, str) else volume
+                except (ValueError, TypeError):
+                    volume = 0
+            
+            # Get price - handle empty values
+            price = market.get("last_price", 0.5)
+            if not price or price == "":
+                price = 0.5
+            else:
+                try:
+                    price = float(price) if isinstance(price, str) else price
+                except (ValueError, TypeError):
+                    price = 0.5
+            
+            # Improve market name - show full question but truncate intelligently
+            question = market.get("question", "Unknown Market")
+            if len(question) > 60:
+                market_display = question[:57] + "..."
+            else:
+                market_display = question
             
             trades.append({
                 "id": f"trade_{i}",
                 "wallet": f"0x{i:040x}",
-                "market": market.get("question", "Unknown Market")[:50],
+                "market": market_display,  # Full market name with smart truncation
                 "amount": int((volume * 100) / (i + 1)) if volume > 0 else 1000 * (i + 1),
                 "type": "buy" if i % 2 == 0 else "sell",
-                "price": float(market.get("last_price", 0.5)) if market.get("last_price") else 0.5,
+                "price": round(price, 4),  # Real price rounded to 4 decimals
                 "conviction": 50 + (i * 5) % 45,
                 "time": f"{i * 5} minutes ago"
             })
