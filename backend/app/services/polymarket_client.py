@@ -57,38 +57,27 @@ class PolymarketClient:
         return await loop.run_in_executor(None, _sync_get)
     
     async def get_markets(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        """Fetch REAL ACTIVE markets from Gamma API events/pagination endpoint (has real prices and volumes)"""
+        """Fetch REAL ACTIVE markets with actual bid/ask spreads from CLOB API orderbooks"""
         try:
             from datetime import datetime, timezone
             
-            # Use Gamma API events/pagination - this is what Polymarket website uses!
-            # It returns events with nested markets that have real bid/ask/volume
-            url = "https://gamma-api.polymarket.com/events/pagination"
+            # Fetch active markets from CLOB - this has ALL markets
+            url = "https://clob.polymarket.com/markets"
             params = {
-                "limit": 500,  # Fetch more to find enough with data
-                "closed": False,
-                "archived": False,
-                "order": "volume",
-                "ascending": False
+                "limit": 500,  # Fetch batch of markets
+                "closed": False,  # Only not-closed markets
+                "offset": offset
             }
             data = await self._async_get(url, params=params)
             
-            # Response format: { "data": [...events...], "count": X }
-            event_list = data.get("data", []) if isinstance(data, dict) else data
+            # Response format: { "data": [...markets...], "next_cursor": "...", "limit": 1000, "count": 1000 }
+            market_list = data.get("data", []) if isinstance(data, dict) else data
             
-            # Flatten: extract markets from each event
-            all_markets = []
-            for event in event_list:
-                # Each event has a "markets" array with real price data
-                if isinstance(event.get("markets"), list):
-                    all_markets.extend(event.get("markets", []))
-            
-            # Filter for TRULY active markets
+            # Filter for truly active markets with future dates
             now = datetime.now(timezone.utc)
-            liquid_markets = []
-            any_active_markets = []
+            filtered_markets = []
             
-            for m in all_markets:
+            for m in market_list:
                 # Must not be closed
                 if m.get("closed"):
                     continue
@@ -103,26 +92,44 @@ class PolymarketClient:
                     except:
                         pass  # If we can't parse, include it
                 
-                any_active_markets.append(m)
-                
-                # PRIORITY: Prefer markets with actual bid/ask spreads (liquidity)
-                best_bid = float(m.get("bestBid", 0)) if m.get("bestBid") else 0
-                best_ask = float(m.get("bestAsk", 0)) if m.get("bestAsk") else 0
-                
-                # Include if we have real price data
-                if (best_bid > 0 or best_ask > 0):
-                    liquid_markets.append(m)
+                filtered_markets.append(m)
             
-            # Use liquid markets if available, otherwise use any active markets
-            markets_to_show = liquid_markets if len(liquid_markets) >= limit else any_active_markets
+            logger.info(f"Filtered {len(filtered_markets)} active markets from {len(market_list)} total")
             
-            logger.info(f"Fetched {len(event_list)} events, extracted {len(all_markets)} markets. "
-                       f"Liquid: {len(liquid_markets)}, Active: {len(any_active_markets)}, Showing: {len(markets_to_show[:limit])}")
+            # For each market, get its orderbook to get real bid/ask data
+            markets_with_prices = []
+            for m in filtered_markets[:limit * 2]:  # Fetch extra to compensate for failures
+                try:
+                    # Try to get the market's orderbook for real pricing
+                    condition_id = m.get("condition_id", m.get("id", ""))
+                    if condition_id:
+                        orderbook_url = f"https://clob.polymarket.com/book/{condition_id}"
+                        orderbook = await self._async_get(orderbook_url)
+                        
+                        # Extract best bid/ask from orderbook
+                        if orderbook and "bids" in orderbook and "asks" in orderbook:
+                            bids = orderbook.get("bids", [])
+                            asks = orderbook.get("asks", [])
+                            
+                            best_bid = float(bids[0]["price"]) if bids else 0
+                            best_ask = float(asks[0]["price"]) if asks else 0
+                            
+                            # Only include if we got real prices
+                            if best_bid > 0 and best_ask > 0 and best_bid != best_ask:
+                                m["bestBid"] = best_bid
+                                m["bestAsk"] = best_ask
+                                markets_with_prices.append(m)
+                except:
+                    # Skip markets where we can't get orderbook data
+                    pass
             
-            # Return only requested amount
-            return [self._normalize_market(m) for m in markets_to_show[:limit]]
+            # If we found markets with prices, use them; otherwise use any active markets
+            final_markets = markets_with_prices if markets_with_prices else filtered_markets
+            
+            logger.info(f"Returning {len(final_markets[:limit])} markets with price data")
+            return [self._normalize_market(m) for m in final_markets[:limit]]
         except Exception as e:
-            logger.error(f"Error fetching markets from Gamma Events API: {e}", exc_info=True)
+            logger.error(f"Error fetching markets: {e}", exc_info=True)
             return []
     
     async def get_market(self, market_id: str) -> Optional[Dict[str, Any]]:
