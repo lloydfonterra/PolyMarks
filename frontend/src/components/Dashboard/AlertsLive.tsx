@@ -25,7 +25,38 @@ export default function AlertsLive({ apiUrl = 'https://polymarks-production.up.r
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        // Simulate whale trade detection based on conviction and volume
+        // Try to fetch REAL whale alerts from Etherscan
+        try {
+          const response = await fetch(
+            'https://polymarks-production.up.railway.app/api/whales/alerts/recent?limit=5'
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            
+            if (data.alerts && data.alerts.length > 0 && data.real_data) {
+              // Transform real Etherscan alerts into our format
+              const realAlerts = data.alerts.map((tx: any) => ({
+                id: tx.id,
+                type: 'whale_trade',
+                title: tx.title,
+                description: `Wallet: ${tx.wallet.slice(0, 10)}... | TX: ${tx.data.transaction_hash.slice(0, 10)}...`,
+                severity: tx.severity,
+                market: `Polymarket Whale Activity`,
+                timestamp: tx.timestamp,
+                dismissed: false
+              }));
+              
+              setAlerts(realAlerts);
+              setLoading(false);
+              return; // Use real data
+            }
+          }
+        } catch (error) {
+          console.debug('Could not fetch real whale alerts, using demo data:', error);
+        }
+        
+        // Fallback to demo whale trade detection
         const whaleAlerts: Alert[] = [
           {
             id: 'whale_1',

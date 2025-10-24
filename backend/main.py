@@ -8,9 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import asyncio
 import logging
+import os
 
 from app.services.polymarket_client import get_polymarket_client
 from app.services.wallet_clustering import WalletClusteringEngine
+from app.services.whale_tracker import WhaleTracker
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,6 +38,11 @@ app.add_middleware(
 polymarket_client = get_polymarket_client()
 clustering_engine = WalletClusteringEngine()
 _cache = {}
+
+# Initialize whale tracker with API key
+whale_tracker = WhaleTracker(
+    etherscan_api_key=os.getenv("ETHERSCAN_API_KEY", "M7XZ8PJKIS86MD6QD6ZWFAD6ZA1PD2Y3HH")
+)
 
 # Root endpoint
 @app.get("/")
@@ -541,6 +548,74 @@ async def alerts_recent(limit: int = 10):
         return {
             "alerts": [],
             "count": 0
+        }
+
+@app.get("/api/whales/alerts/recent")
+async def get_real_whale_alerts(limit: int = 10, min_amount: float = 50000):
+    """Get real whale transactions from Etherscan"""
+    try:
+        alerts = await whale_tracker.detect_whale_alerts(min_amount=min_amount)
+        
+        logger.info(f"Found {len(alerts)} whale alerts")
+        
+        return {
+            "alerts": alerts[:limit],
+            "count": len(alerts[:limit]),
+            "total": len(alerts),
+            "data_source": "etherscan",
+            "real_data": True
+        }
+    except Exception as e:
+        logger.error(f"Error fetching whale alerts: {e}", exc_info=True)
+        return {
+            "alerts": [],
+            "count": 0,
+            "total": 0,
+            "error": str(e),
+            "data_source": "etherscan"
+        }
+
+
+@app.get("/api/wallets/{wallet_address}/history")
+async def get_wallet_history(wallet_address: str):
+    """Get transaction history for a specific wallet"""
+    try:
+        history = await whale_tracker.get_wallet_history(wallet_address)
+        conviction = await whale_tracker.calculate_trader_conviction(wallet_address)
+        
+        return {
+            "wallet": wallet_address,
+            "history": history,
+            "conviction": conviction,
+            "data_source": "etherscan",
+            "real_data": True
+        }
+    except Exception as e:
+        logger.error(f"Error fetching wallet history: {e}", exc_info=True)
+        return {
+            "wallet": wallet_address,
+            "error": str(e)
+        }
+
+
+@app.get("/api/traders/top")
+async def get_top_traders(limit: int = 10):
+    """Get top traders by conviction from blockchain history"""
+    try:
+        # In production, this would query a database of tracked wallets
+        # For now, return example response structure
+        return {
+            "traders": [],
+            "count": 0,
+            "data_source": "etherscan",
+            "real_data": True,
+            "note": "Implement wallet tracking system to populate this endpoint"
+        }
+    except Exception as e:
+        logger.error(f"Error fetching top traders: {e}", exc_info=True)
+        return {
+            "traders": [],
+            "error": str(e)
         }
 
 # ============ Startup/Shutdown Events ============
