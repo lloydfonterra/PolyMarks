@@ -1,23 +1,10 @@
-// API Configuration
-// First try environment variable, then check window for injected value, finally use default
-const getApiUrl = () => {
-  // Check for environment variable (set at build time)
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL
-  }
-  
-  // Check for runtime injected value (set via Railway environment)
-  if (typeof window !== 'undefined' && (window as any).__API_URL__) {
-    return (window as any).__API_URL__
-  }
-  
-  // Default to deployed backend URL
-  return 'https://polymarks-production.up.railway.app'
-}
+// API Configuration - Hardcoded for Railway deployment
+// Update this URL if you change your backend domain
+const API_BASE_URL = 'https://polymarks-production.up.railway.app'
 
-const API_BASE_URL = getApiUrl()
-
-console.log('Using API URL:', API_BASE_URL)  // Debug log
+console.log('=== PolyMarks API Client Initialized ===')
+console.log('API_BASE_URL:', API_BASE_URL)
+console.log('=========================================')
 
 // Types
 export interface Trade {
