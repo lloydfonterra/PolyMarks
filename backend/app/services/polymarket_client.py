@@ -113,7 +113,7 @@ class PolymarketClient:
             
             logger.info(f"Filtered to {len(filtered_markets)} active trending markets")
             
-            return [self._normalize_market(m) for m in filtered_markets[:limit]]
+            return [self._normalize_market(m) for m in filtered_markets[:limit] if self._normalize_market(m).get("last_price") >= 0.01]
         except Exception as e:
             logger.error(f"Error fetching trending markets: {e}", exc_info=True)
             return []
