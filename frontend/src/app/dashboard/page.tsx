@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, Zap, AlertCircle, Users } from 'lucide-react'
 import DashboardHeader from '@/components/Dashboard/DashboardHeader'
-import RealtimeTradeFeed from '@/components/Dashboard/RealtimeTradeFeed'
+// import RealtimeTradeFeed from '@/components/Dashboard/RealtimeTradeFeed'
 import LeaderboardLive from '@/components/Dashboard/LeaderboardLive'
 import AlertsLive from '@/components/Dashboard/AlertsLive'
 import MetricsGrid from '@/components/Dashboard/MetricsGrid'
@@ -81,11 +81,11 @@ export default function Dashboard() {
               </div>
 
               {/* Trades List - Real-time updates every 2 seconds */}
-              <RealtimeTradeFeed 
+              {/* <RealtimeTradeFeed 
                 apiUrl="https://polymarks-production.up.railway.app/api/trades/recent" 
                 backendUrl="https://polymarks-production.up.railway.app"
                 refreshIntervalMs={2000} 
-              />
+              /> */}
             </div>
           </div>
         </div>
