@@ -83,14 +83,33 @@ export default function Dashboard() {
           timestamp: new Date().toISOString()
         }
         
+        // Generate dynamic new markets every 5 seconds (rotating through different markets)
+        const allNewMarkets = [
+          {"id": "new1", "question": "Ireland Election 2025", "volume": 450000, "price": 0.94, "status": "NEW", "description": "Ireland Election 2025"},
+          {"id": "new2", "question": "Netherlands Parliament 2025", "volume": 380000, "price": 0.77, "status": "NEW", "description": "Netherlands Parliament 2025"},
+          {"id": "new3", "question": "Trump Malaysia Visit", "volume": 290000, "price": 0.66, "status": "NEW", "description": "Trump Malaysia Visit"},
+          {"id": "new4", "question": "Gaza Humanitarian Crisis", "volume": 580000, "price": 0.45, "status": "HOT", "description": "Gaza Humanitarian Crisis"},
+          {"id": "new5", "question": "UK Budget Announcement", "volume": 320000, "price": 0.58, "status": "NEW", "description": "UK Budget Announcement"},
+          {"id": "new6", "question": "Fed Rate Decision Dec", "volume": 610000, "price": 0.72, "status": "HOT", "description": "Fed Rate Decision Dec"},
+          {"id": "new7", "question": "Bitcoin ETF Approval", "volume": 750000, "price": 0.81, "status": "NEW", "description": "Bitcoin ETF Approval"},
+          {"id": "new8", "question": "AI Regulation Framework", "volume": 420000, "price": 0.63, "status": "NEW", "description": "AI Regulation Framework"},
+          {"id": "new9", "question": "Tech IPO Wave 2025", "volume": 510000, "price": 0.55, "status": "HOT", "description": "Tech IPO Wave 2025"},
+          {"id": "new10", "question": "Oil Price Surge", "volume": 340000, "price": 0.68, "status": "NEW", "description": "Oil Price Surge"},
+        ]
+        
+        // Get current batch based on time (rotate through 2 markets per 5 seconds)
+        const currentTime = Math.floor(Date.now() / 5000) // Gets a new number every 5 seconds
+        const startIdx = (currentTime * 2) % allNewMarkets.length
+        const newMarketsBatch = allNewMarkets.slice(startIdx, startIdx + 4)
+        
+        // If we don't have enough, wrap around
+        if (newMarketsBatch.length < 4) {
+          newMarketsBatch.push(...allNewMarkets.slice(0, 4 - newMarketsBatch.length))
+        }
+        
         const newMarketsMockData = {
-          new_markets: [
-            {"id": "new1", "question": "Ireland Election 2025", "volume": 450000, "price": 0.94, "status": "NEW", "description": "Ireland Election 2025"},
-            {"id": "new2", "question": "Netherlands Parliament 2025", "volume": 380000, "price": 0.77, "status": "NEW", "description": "Netherlands Parliament 2025"},
-            {"id": "new3", "question": "Trump Malaysia Visit", "volume": 290000, "price": 0.66, "status": "NEW", "description": "Trump Malaysia Visit"},
-            {"id": "new4", "question": "Gaza Humanitarian Crisis", "volume": 580000, "price": 0.45, "status": "HOT", "description": "Gaza Humanitarian Crisis"}
-          ],
-          count: 4,
+          new_markets: newMarketsBatch,
+          count: newMarketsBatch.length,
           data_source: "mock",
           real_data: false,
           timestamp: new Date().toISOString()
@@ -106,8 +125,8 @@ export default function Dashboard() {
     // Initial fetch
     fetchMarketData()
 
-    // Set up auto-refresh every 2 seconds
-    const interval = setInterval(fetchMarketData, 2000)
+    // Set up auto-refresh every 5 seconds (streaming new markets)
+    const interval = setInterval(fetchMarketData, 5000)
 
     return () => clearInterval(interval)
   }, [])
