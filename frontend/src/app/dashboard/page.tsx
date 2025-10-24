@@ -6,6 +6,7 @@ import DashboardHeader from '@/components/Dashboard/DashboardHeader'
 import RealtimeTradeFeed from '@/components/Dashboard/RealtimeTradeFeed'
 import LeaderboardLive from '@/components/Dashboard/LeaderboardLive'
 import MetricsGrid from '@/components/Dashboard/MetricsGrid'
+import AlertsLive from '@/components/Dashboard/AlertsLive'
 
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState('24h')
@@ -90,29 +91,7 @@ export default function Dashboard() {
             </div>
 
             {/* Alerts */}
-            <div className="bg-conviction-900/50 rounded-xl border border-conviction-800 p-6">
-              <h3 className="font-bold mb-4 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-accent-yellow" />
-                Active Alerts
-              </h3>
-              <div className="space-y-3">
-                {[
-                  { emoji: '🐋', text: 'Whale detected in BTC market', time: '2m ago' },
-                  { emoji: '📈', text: 'High conviction position opening', time: '5m ago' },
-                  { emoji: '🔔', text: 'New cluster identified', time: '12m ago' },
-                ].map((alert, idx) => (
-                  <div key={idx} className="p-3 rounded-lg bg-conviction-800/50 hover:bg-conviction-800 transition text-sm">
-                    <div className="flex items-start gap-3">
-                      <span className="text-lg">{alert.emoji}</span>
-                      <div className="flex-1">
-                        <div className="text-white">{alert.text}</div>
-                        <div className="text-conviction-500 text-xs mt-1">{alert.time}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <AlertsLive />
           </div>
         </div>
 
