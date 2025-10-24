@@ -56,23 +56,50 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchMarketData = async () => {
       try {
-        const apiUrl = 'https://polymarks-production.up.railway.app'
-        
-        // Fetch trending markets
-        const trendingRes = await fetch(`${apiUrl}/api/markets/trending?limit=10`)
-        if (trendingRes.ok) {
-          const data = await trendingRes.json()
-          setTrendingData(data)
+        // Use hardcoded mock data directly (no API calls for now)
+        const trendingMockData = {
+          trending: {
+            "Politics Markets": [
+              {"id": "pol1", "question": "Will Trump win 2024?", "volume_24h": 1500000, "price": 0.65},
+              {"id": "pol2", "question": "Who will win UK election?", "volume_24h": 1200000, "price": 0.55}
+            ],
+            "Sports Events": [
+              {"id": "sport1", "question": "Will Chiefs win Super Bowl?", "volume_24h": 2000000, "price": 0.72},
+              {"id": "sport2", "question": "Will Mahomes throw 300+ yards?", "volume_24h": 800000, "price": 0.58}
+            ],
+            "Finance Markets": [
+              {"id": "fin1", "question": "Will Fed raise rates?", "volume_24h": 950000, "price": 0.42},
+              {"id": "fin2", "question": "Will inflation hit 4%?", "volume_24h": 750000, "price": 0.35}
+            ],
+            "Tech & Crypto": [
+              {"id": "tech1", "question": "Will BTC reach $100k?", "volume_24h": 3500000, "price": 0.68},
+              {"id": "tech2", "question": "Will ETH reach $5k?", "volume_24h": 2800000, "price": 0.52}
+            ],
+            "Other": []
+          },
+          count: 8,
+          data_source: "mock",
+          real_data: false,
+          timestamp: new Date().toISOString()
         }
         
-        // Fetch new markets
-        const newRes = await fetch(`${apiUrl}/api/markets/new?limit=10`)
-        if (newRes.ok) {
-          const data = await newRes.json()
-          setNewMarketsData(data)
+        const newMarketsMockData = {
+          new_markets: [
+            {"id": "new1", "question": "Ireland Election 2025", "volume_24h": 450000, "price": 0.94, "status": "NEW"},
+            {"id": "new2", "question": "Netherlands Parliament 2025", "volume_24h": 380000, "price": 0.77, "status": "NEW"},
+            {"id": "new3", "question": "Trump Malaysia Visit", "volume_24h": 290000, "price": 0.66, "status": "NEW"},
+            {"id": "new4", "question": "Gaza Humanitarian Crisis", "volume_24h": 580000, "price": 0.45, "status": "HOT"}
+          ],
+          count: 4,
+          data_source: "mock",
+          real_data: false,
+          timestamp: new Date().toISOString()
         }
+        
+        setTrendingData(trendingMockData)
+        setNewMarketsData(newMarketsMockData)
       } catch (error) {
-        console.error('Error fetching market data:', error)
+        console.error('Error setting market data:', error)
       }
     }
 
