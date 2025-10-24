@@ -28,107 +28,12 @@ export default function LeaderboardLive({ apiUrl = 'https://polymarks-production
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        // Generate realistic trader data
-        const generatedTraders: Trader[] = [
-          {
-            rank: 1,
-            address: '0xwhale123456789',
-            name: 'WhaleAlpha',
-            winRate: 0.785,
-            roi: 0.243,
-            volume: 2500000,
-            trades: 156,
-            trend: 'UP',
-            conviction: 8.5,
-            totalConviction: 89
-          },
-          {
-            rank: 2,
-            address: '0xtrader2xxxx',
-            name: 'TradeMaster',
-            winRate: 0.72,
-            roi: 0.189,
-            volume: 1800000,
-            trades: 142,
-            trend: 'UP',
-            conviction: 7.8,
-            totalConviction: 82
-          },
-          {
-            rank: 3,
-            address: '0xvault333xx',
-            name: 'VaultKeeper',
-            winRate: 0.68,
-            roi: 0.156,
-            volume: 1400000,
-            trades: 128,
-            trend: 'STABLE',
-            conviction: 7.2,
-            totalConviction: 75
-          },
-          {
-            rank: 4,
-            address: '0xpro444xxxx',
-            name: 'ProTrader',
-            winRate: 0.65,
-            roi: 0.134,
-            volume: 950000,
-            trades: 105,
-            trend: 'DOWN',
-            conviction: 6.8,
-            totalConviction: 68
-          },
-          {
-            rank: 5,
-            address: '0xexpert55xx',
-            name: 'ExpertBet',
-            winRate: 0.62,
-            roi: 0.112,
-            volume: 780000,
-            trades: 92,
-            trend: 'UP',
-            conviction: 6.2,
-            totalConviction: 62
-          },
-          {
-            rank: 6,
-            address: '0xsmart666x',
-            name: 'SmartMoney',
-            winRate: 0.58,
-            roi: 0.098,
-            volume: 650000,
-            trades: 78,
-            trend: 'UP',
-            conviction: 5.8,
-            totalConviction: 58
-          },
-          {
-            rank: 7,
-            address: '0xcrypto77x',
-            name: 'CryptoWizard',
-            winRate: 0.55,
-            roi: 0.087,
-            volume: 520000,
-            trades: 65,
-            trend: 'STABLE',
-            conviction: 5.2,
-            totalConviction: 52
-          },
-          {
-            rank: 8,
-            address: '0xrising88x',
-            name: 'RisingTide',
-            winRate: 0.52,
-            roi: 0.075,
-            volume: 420000,
-            trades: 52,
-            trend: 'UP',
-            conviction: 4.8,
-            totalConviction: 48
-          }
-        ]
-
-        setTraders(generatedTraders)
+        const response = await fetch(`${apiUrl}?period=${period}`)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data: Trader[] = await response.json()
+        setTraders(data)
         setLoading(false)
       } catch (error) {
         console.error('Failed to fetch leaderboard:', error)
