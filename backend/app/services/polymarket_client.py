@@ -57,10 +57,10 @@ class PolymarketClient:
         return await loop.run_in_executor(None, _sync_get)
     
     async def get_markets(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        """Fetch list of markets from Polymarket Gamma API (has real prices and volumes)"""
+        """Fetch REAL ACTIVE markets from Polymarket CLOB API (1000+ active markets)"""
         try:
             # Use Gamma API instead of CLOB API - has real pricing data
-            url = "https://gamma-api.polymarket.com/markets"
+            url = f"{self.base_url}/markets"
             params = {"limit": limit, "offset": offset, "active": True}
             data = await self._async_get(url, params=params)
             
