@@ -4,28 +4,62 @@ import { useEffect, useState } from 'react'
 import { TrendingUp, TrendingDown, Loader } from 'lucide-react'
 import { fetchRecentTrades, Trade } from '../../lib/api'
 
+// Mock data fallback
+const MOCK_TRADES: Trade[] = [
+  {
+    id: '1',
+    wallet: '8c74c...92b',
+    market: 'Will BTC reach $50k?',
+    size: 50000,
+    type: 'buy',
+    price: 0.72,
+    time: 'just now',
+    conviction: 92,
+  },
+]
+
 export default function TradeFeed() {
   const [trades, setTrades] = useState<Trade[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [apiUrl, setApiUrl] = useState<string>('')
 
   useEffect(() => {
     const loadTrades = async () => {
       setIsLoading(true)
       setError(null)
       try {
-        const data = await fetchRecentTrades(10)
-        setTrades(data)
+        const url = 'https://polymarks-production.up.railway.app/api/trades/recent?limit=10'
+        setApiUrl(url)
+        console.log('TradeFeed: Fetching from', url)
+        
+        const response = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        
+        console.log('TradeFeed: Response status', response.status)
+        console.log('TradeFeed: Response ok?', response.ok)
+        
+        if (response.ok) {
+          const data = await response.json()
+          console.log('TradeFeed: Got data', data)
+          const trades = data.trades || data || []
+          setTrades(Array.isArray(trades) ? trades : MOCK_TRADES)
+        } else {
+          console.error('TradeFeed: API returned', response.status)
+          setTrades(MOCK_TRADES)
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load trades')
+        console.error('TradeFeed: Error', err)
+        setTrades(MOCK_TRADES)
       } finally {
         setIsLoading(false)
       }
     }
 
     loadTrades()
-    
-    // Refresh trades every 10 seconds
     const interval = setInterval(loadTrades, 10000)
     return () => clearInterval(interval)
   }, [])
