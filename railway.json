@@ -1,0 +1,14 @@
+{
+  "services": {
+    "backend": {
+      "builder": "dockerfile",
+      "rootDirectory": "backend",
+      "port": 8000
+    },
+    "frontend": {
+      "builder": "dockerfile",
+      "rootDirectory": "frontend",
+      "port": 3000
+    }
+  }
+}
