@@ -57,13 +57,14 @@ class PolymarketClient:
         return await loop.run_in_executor(None, _sync_get)
     
     async def get_markets(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        """Fetch list of markets from Polymarket"""
+        """Fetch list of markets from Polymarket Gamma API (has real prices and volumes)"""
         try:
-            url = f"{self.base_url}/markets"
-            params = {"limit": limit, "offset": offset}
+            # Use Gamma API instead of CLOB API - has real pricing data
+            url = "https://gamma-api.polymarket.com/markets"
+            params = {"limit": limit, "offset": offset, "active": True}
             data = await self._async_get(url, params=params)
             
-            # Handle the Polymarket API response format
+            # Handle the Gamma API response format
             # API returns: {"markets": [...], "count": X, ...} OR directly as array
             if isinstance(data, dict):
                 # Try to get markets from 'markets' key, then 'data' key
@@ -74,11 +75,26 @@ class PolymarketClient:
             else:
                 market_list = []
             
-            logger.info(f"Fetched {len(market_list)} markets from Polymarket")
+            logger.info(f"Fetched {len(market_list)} markets from Gamma API")
             return [self._normalize_market(m) for m in market_list[:limit]]
         except Exception as e:
-            logger.error(f"Error fetching markets: {e}", exc_info=True)
-            return []
+            logger.error(f"Error fetching markets from Gamma API: {e}", exc_info=True)
+            # Fallback to CLOB API if Gamma fails
+            try:
+                url = f"{self.base_url}/markets"
+                params = {"limit": limit, "offset": offset}
+                data = await self._async_get(url, params=params)
+                if isinstance(data, dict):
+                    market_list = data.get("markets", data.get("data", []))
+                elif isinstance(data, list):
+                    market_list = data
+                else:
+                    market_list = []
+                logger.info(f"Fallback: Fetched {len(market_list)} markets from CLOB API")
+                return [self._normalize_market(m) for m in market_list[:limit]]
+            except Exception as e2:
+                logger.error(f"Error fetching markets fallback: {e2}", exc_info=True)
+                return []
     
     async def get_market(self, market_id: str) -> Optional[Dict[str, Any]]:
         """Fetch details for a specific market"""
