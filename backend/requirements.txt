@@ -49,3 +49,4 @@ httpx[http2]==0.25.2
 # Web Scraping
 requests==2.31.0
 beautifulsoup4==4.12.2
+playwright==1.43.0
