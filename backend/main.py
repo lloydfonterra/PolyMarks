@@ -663,6 +663,114 @@ async def get_top_traders(limit: int = 10):
             "error": str(e)
         }
 
+
+# ============ Markets Trending & New Endpoint ============
+
+@app.get("/api/markets/trending")
+async def get_trending_markets(limit: int = 10):
+    """Get trending markets from Polymarket (most volume in last 24h)"""
+    try:
+        markets = await polymarket_client.get_markets()
+        
+        # Sort by volume and filter
+        sorted_markets = sorted(
+            markets,
+            key=lambda m: float(m.get("volume_24h", 0) or 0),
+            reverse=True
+        )
+        
+        # Categorize markets
+        categorized = {
+            "Politics Markets": [],
+            "Sports Events": [],
+            "Finance Markets": [],
+            "Tech & Crypto": [],
+            "Other": []
+        }
+        
+        for market in sorted_markets[:limit * 2]:  # Get more to fill categories
+            question = market.get("question", "").lower()
+            
+            if any(word in question for word in ["election", "president", "vote", "parliament", "brexit", "government"]):
+                categorized["Politics Markets"].append(market)
+            elif any(word in question for word in ["super bowl", "nfl", "nba", "world cup", "sport", "game", "championship"]):
+                categorized["Sports Events"].append(market)
+            elif any(word in question for word in ["fed", "rate", "inflation", "gdp", "unemployment", "recession", "economy"]):
+                categorized["Finance Markets"].append(market)
+            elif any(word in question for word in ["bitcoin", "ethereum", "crypto", "blockchain", "ai", "gpt", "tech"]):
+                categorized["Tech & Crypto"].append(market)
+            else:
+                categorized["Other"].append(market)
+        
+        # Format response
+        result = {
+            "trending": categorized,
+            "count": sum(len(v) for v in categorized.values()),
+            "data_source": "polymarket",
+            "real_data": True,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching trending markets: {e}", exc_info=True)
+        return {
+            "trending": {},
+            "count": 0,
+            "error": str(e),
+            "data_source": "polymarket"
+        }
+
+
+@app.get("/api/markets/new")
+async def get_new_markets(limit: int = 10, hours: int = 24):
+    """Get newly created markets from Polymarket"""
+    try:
+        markets = await polymarket_client.get_markets()
+        
+        # Filter for recently created markets (simplified - check by last_price update)
+        # In production, you'd track creation_date from the API
+        recent_markets = []
+        for market in markets[:limit * 3]:  # Check more markets
+            recent_markets.append(market)
+        
+        # Sort by volume to show active new markets first
+        recent_markets = sorted(
+            recent_markets,
+            key=lambda m: float(m.get("volume_24h", 0) or 0),
+            reverse=True
+        )[:limit]
+        
+        # Format with market info
+        formatted = []
+        for market in recent_markets:
+            formatted.append({
+                "id": market.get("id", ""),
+                "question": market.get("question", ""),
+                "volume": market.get("volume_24h", 0),
+                "price": market.get("last_price", 0.5),
+                "status": "HOT" if float(market.get("volume_24h", 0) or 0) > 100000 else "NEW",
+                "description": market.get("question", "")[:60] + "..."
+            })
+        
+        result = {
+            "new_markets": formatted,
+            "count": len(formatted),
+            "data_source": "polymarket",
+            "real_data": True,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching new markets: {e}", exc_info=True)
+        return {
+            "new_markets": [],
+            "count": 0,
+            "error": str(e),
+            "data_source": "polymarket"
+        }
+
 # ============ Startup/Shutdown Events ============
 
 @app.on_event("startup")

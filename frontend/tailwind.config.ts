@@ -40,6 +40,7 @@ const config: Config = {
       animation: {
         'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 3s ease-in-out infinite',
+        'pulse-slow': 'pulse-slow 2s ease-in-out infinite',
       },
       keyframes: {
         'pulse-glow': {
@@ -49,6 +50,10 @@ const config: Config = {
         'float': {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-10px)' },
+        },
+        'pulse-slow': {
+          '0%, 100%': { borderColor: 'rgba(6, 182, 212, 0.1)' },
+          '50%': { borderColor: 'rgba(6, 182, 212, 0.3)' },
         },
       },
     },
