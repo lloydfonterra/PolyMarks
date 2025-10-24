@@ -77,25 +77,25 @@ export default function RealtimeTradeFeed({ apiUrl, refreshIntervalMs = 2000 }: 
                 animatingIndices.has(index) ? 'animate-pulse' : ''
               }`}
             >
-              <td className="px-6 py-4 font-mono text-xs text-conviction-300">{trade.wallet.substring(0, 10)}...</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-conviction-100 truncate max-w-xs">
-                <a href={`https://polymarket.com/search?q=${trade.market}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+              <td className="px-3 py-2 font-mono text-xs text-conviction-300 w-24">{trade.wallet.substring(0, 10)}...</td>
+              <td className="px-3 py-2 text-sm font-medium text-conviction-100 min-w-64">
+                <a href={`https://polymarket.com/search?q=${trade.market}`} target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-whale-400 transition">
                   {trade.market}
                 </a>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">
+              <td className="px-3 py-2 whitespace-nowrap text-sm">
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                   trade.type === 'buy' ? 'bg-accent-green/20 text-accent-green' : 'bg-accent-red/20 text-accent-red'
                 }`}>
                   {trade.type}
                 </span>
               </td>
-              <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium transition-all ${
+              <td className={`px-3 py-2 whitespace-nowrap text-sm font-medium transition-all w-20 ${
                 animatingIndices.has(index) ? 'volume-updated' : ''
               }`}>
                 ${!isNaN(trade.size) ? (trade.size / 1000).toFixed(1) : '0.0'}k
               </td>
-              <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold transition-all ${
+              <td className={`px-3 py-2 whitespace-nowrap text-sm font-bold transition-all w-16 ${
                 animatingIndices.has(index) ? 'price-updated' : ''
               } ${
                 !isNaN(trade.price) ? (
@@ -106,18 +106,18 @@ export default function RealtimeTradeFeed({ apiUrl, refreshIntervalMs = 2000 }: 
               }`}>
                 {!isNaN(trade.price) ? trade.price.toFixed(2) : '0.00'}¢
               </td>
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-20 bg-conviction-800 rounded-full h-2">
+              <td className="px-3 py-2">
+                <div className="flex items-center gap-2 min-w-32">
+                  <div className="w-16 bg-conviction-800 rounded-full h-2">
                     <div
                       className="bg-whale-500 h-2 rounded-full transition-all"
                       style={{ width: `${trade.conviction}%` }}
                     />
                   </div>
-                  <span className="text-xs text-whale-400">{trade.conviction}%</span>
+                  <span className="text-xs text-whale-400 w-12">{trade.conviction.toFixed(0)}%</span>
                 </div>
               </td>
-              <td className="px-6 py-4 text-xs text-conviction-500">{trade.time}</td>
+              <td className="px-3 py-2 text-xs text-conviction-500 w-24">{trade.time}</td>
             </tr>
           ))}
         </tbody>

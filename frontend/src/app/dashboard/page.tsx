@@ -55,10 +55,10 @@ export default function Dashboard() {
           </a>
         </div>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-          {/* Left Column - Trades */}
-          <div className="lg:col-span-2">
+        {/* Main Grid - Full Width for Better Display */}
+        <div className="grid grid-cols-1 gap-6 mt-8">
+          {/* Full Width - Trades Section */}
+          <div className="w-full">
             <div className="bg-conviction-900/50 rounded-xl border border-conviction-800 overflow-hidden">
               {/* Header */}
               <div className="px-6 py-4 border-b border-conviction-800 flex justify-between items-center">
@@ -84,12 +84,13 @@ export default function Dashboard() {
               <RealtimeTradeFeed apiUrl="https://polymarks-production.up.railway.app/api/trades/recent" refreshIntervalMs={2000} />
             </div>
           </div>
+        </div>
 
-          {/* Right Column - Metrics */}
-          <div className="space-y-6">
-            {/* Quick Stats */}
-            <div className="bg-conviction-900/50 rounded-xl border border-conviction-800 p-6">
-              <h3 className="font-bold mb-4">Market Overview</h3>
+        {/* Bottom Section - Metrics & Alerts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+          {/* Quick Stats */}
+          <div className="bg-conviction-900/50 rounded-xl border border-conviction-800 p-6">
+            <h3 className="font-bold mb-4">Market Overview</h3>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between mb-2">
@@ -123,9 +124,11 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Alerts */}
-            <AlertsLive />
-          </div>
+          {/* Alerts */}
+          <AlertsLive />
+
+          {/* Spacer */}
+          <div></div>
         </div>
 
         {/* Bottom Section - Leaderboard */}
