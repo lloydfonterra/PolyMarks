@@ -121,13 +121,13 @@ async def trades_recent(limit: int = 10):
             # Get volume - handle empty/zero values with realistic fallback
             volume = market.get("volume24hr", 0)
             if not volume or volume == "" or volume == 0:
-                # Generate realistic demo volume between 50k-500k
-                volume = int(50000 + (i * 47000) % 450000)
+                # Generate realistic demo volume between 150k-2.5M
+                volume = int(150000 + (i * 100000) % 2400000)
             else:
                 try:
                     volume = float(volume) if isinstance(volume, str) else volume
                 except (ValueError, TypeError):
-                    volume = int(50000 + (i * 47000) % 450000)
+                    volume = int(150000 + (i * 100000) % 2400000)
             
             # Improve market name - show full question but truncate intelligently
             question = market.get("question", "Unknown Market")
