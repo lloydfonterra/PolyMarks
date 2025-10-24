@@ -59,42 +59,48 @@ class PolymarketClient:
     async def get_markets(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
         """Fetch REAL ACTIVE markets from Polymarket CLOB API (1000+ active markets)"""
         try:
-            # Use Gamma API instead of CLOB API - has real pricing data
+            from datetime import datetime, timezone
+            
+            # Use CLOB API for real active markets
             url = f"{self.base_url}/markets"
-            params = {"limit": limit, "offset": offset, "active": True}
+            params = {"limit": limit, "offset": offset}
             data = await self._async_get(url, params=params)
             
-            # Handle the Gamma API response format
-            # API returns: {"markets": [...], "count": X, ...} OR directly as array
+            # Handle response format
             if isinstance(data, dict):
-                # Try to get markets from 'markets' key, then 'data' key
-                market_list = data.get("markets", data.get("data", []))
+                market_list = data.get("data", [])
             elif isinstance(data, list):
-                # Direct array format
                 market_list = data
             else:
                 market_list = []
             
-            logger.info(f"Fetched {len(market_list)} markets from Gamma API")
-            return [self._normalize_market(m) for m in market_list[:limit]]
+            # Filter for TRULY active markets (must be open/not closed with future dates)
+            now = datetime.now(timezone.utc)
+            truly_active_markets = []
+            
+            for m in market_list:
+                # Must not be closed
+                if m.get("closed"):
+                    continue
+                
+                # Must have a future end date
+                end_date_str = m.get("end_date_iso")
+                if end_date_str:
+                    try:
+                        end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
+                        if end_date < now:
+                            continue  # Skip expired markets
+                    except:
+                        pass  # If we can't parse, include it
+                
+                truly_active_markets.append(m)
+            
+            logger.info(f"Fetched {len(market_list)} total markets, {len(truly_active_markets)} are TRULY ACTIVE (open, not closed, future end dates)")
+            
+            return [self._normalize_market(m) for m in truly_active_markets[:limit]]
         except Exception as e:
-            logger.error(f"Error fetching markets from Gamma API: {e}", exc_info=True)
-            # Fallback to CLOB API if Gamma fails
-            try:
-                url = f"{self.base_url}/markets"
-                params = {"limit": limit, "offset": offset}
-                data = await self._async_get(url, params=params)
-                if isinstance(data, dict):
-                    market_list = data.get("markets", data.get("data", []))
-                elif isinstance(data, list):
-                    market_list = data
-                else:
-                    market_list = []
-                logger.info(f"Fallback: Fetched {len(market_list)} markets from CLOB API")
-                return [self._normalize_market(m) for m in market_list[:limit]]
-            except Exception as e2:
-                logger.error(f"Error fetching markets fallback: {e2}", exc_info=True)
-                return []
+            logger.error(f"Error fetching markets from CLOB API: {e}", exc_info=True)
+            return []
     
     async def get_market(self, market_id: str) -> Optional[Dict[str, Any]]:
         """Fetch details for a specific market"""
