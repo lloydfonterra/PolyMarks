@@ -23,6 +23,7 @@ export default function TradeFeed() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [apiUrl, setApiUrl] = useState<string>('')
+  const [recentlyUpdatedPriceIndices, setRecentlyUpdatedPriceIndices] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     const loadTrades = async () => {
@@ -92,8 +93,13 @@ export default function TradeFeed() {
           </tr>
         </thead>
         <tbody className="divide-y divide-conviction-800">
-          {trades.map((trade) => (
-            <tr key={trade.id} className="hover:bg-conviction-800/30 transition">
+          {trades.map((trade, index) => (
+            <tr
+              key={trade.id}
+              className={`hover:bg-conviction-800/30 transition ${
+                recentlyUpdatedPriceIndices.has(index) ? 'animate-pulse' : ''
+              }`}
+            >
               <td className="px-6 py-4 font-mono text-xs text-conviction-300">{trade.wallet}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-conviction-100">
                 {trade.market}
