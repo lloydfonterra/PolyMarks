@@ -103,31 +103,28 @@ async def trades_recent(limit: int = 10):
         # Transform markets into trade-like format to show active market data
         trades = []
         for i, market in enumerate(markets):
-            # Get price - use best bid/ask midpoint, or generate realistic demo price
+            # Get REAL price from API - use best bid/ask midpoint
             best_bid = float(market.get("bestBid", 0)) if market.get("bestBid") else 0
-            best_ask = float(market.get("bestAsk", 1)) if market.get("bestAsk") else 1
+            best_ask = float(market.get("bestAsk", 0)) if market.get("bestAsk") else 0
             
-            # If using archived markets with 0/1 bid/ask, generate realistic demo prices
-            if (best_bid == 0 and best_ask == 1) or (best_bid == 0 and best_ask == 0):
-                # Generate realistic price between 0.15 and 0.95
-                import random
-                price = round(0.15 + (i * 0.12 % 0.8) + random.uniform(-0.05, 0.05), 4)
-                price = max(0.05, min(0.95, price))  # Clamp between 0.05 and 0.95
+            # Calculate price
+            if best_bid > 0 or best_ask > 0:
+                # Use midpoint for real prices
+                price = (best_bid + best_ask) / 2 if (best_bid + best_ask) > 0 else 0.5
             else:
-                # Use actual midpoint for live markets
-                price = (best_bid + best_ask) / 2
-                price = round(price, 4)
+                # Fallback if no price data available
+                price = 0.5
             
-            # Get volume - handle empty/zero values with realistic fallback
+            price = round(max(0.01, min(0.99, price)), 4)
+            
+            # Get volume - use REAL 24h volume from API
             volume = market.get("volume24hr", 0)
-            if not volume or volume == "" or volume == 0:
-                # Generate realistic demo volume between 150k-2.5M
-                volume = int(150000 + (i * 100000) % 2400000)
-            else:
-                try:
-                    volume = float(volume) if isinstance(volume, str) else volume
-                except (ValueError, TypeError):
-                    volume = int(150000 + (i * 100000) % 2400000)
+            try:
+                volume = float(volume) if isinstance(volume, str) else volume
+                if not volume or volume == "" or volume == 0:
+                    volume = 0  # Use 0 instead of generating fake volume
+            except (ValueError, TypeError):
+                volume = 0
             
             # Improve market name - show full question but truncate intelligently
             question = market.get("question", "Unknown Market")
