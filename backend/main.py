@@ -108,20 +108,29 @@ async def trades_recent(
         
         logger.info(f"Fetched {len(markets)} markets from Polymarket API")
         
+        # Fetch REAL prices from CLOB API for all markets
+        market_ids = [market.get("id") for market in markets if market.get("id")]
+        real_prices = {}
+        if market_ids:
+            real_prices = await polymarket_client.get_real_prices(market_ids)
+            logger.info(f"Fetched real prices for {len(real_prices)} markets")
+        
         # Transform markets into trade-like format to show active market data
         trades = []
         for i, market in enumerate(markets):
-            # Get REAL price from API - use best bid/ask midpoint
-            best_bid = float(market.get("bestBid", 0)) if market.get("bestBid") else 0
-            best_ask = float(market.get("bestAsk", 0)) if market.get("bestAsk") else 0
-            
-            # Calculate price
-            if best_bid > 0 or best_ask > 0:
-                # Use midpoint for real prices
-                price = (best_bid + best_ask) / 2 if (best_bid + best_ask) > 0 else 0.5
+            # Get REAL price from CLOB API if available, otherwise use fallback
+            market_id = market.get("id", "")
+            if market_id in real_prices:
+                price = float(real_prices[market_id])
             else:
-                # Fallback if no price data available
-                price = 0.5
+                # Fallback: use best bid/ask midpoint from market data
+                best_bid = float(market.get("bestBid", 0)) if market.get("bestBid") else 0
+                best_ask = float(market.get("bestAsk", 0)) if market.get("bestAsk") else 0
+                
+                if best_bid > 0 or best_ask > 0:
+                    price = (best_bid + best_ask) / 2 if (best_bid + best_ask) > 0 else 0.5
+                else:
+                    price = 0.5
             
             price = round(max(0.01, min(0.99, price)), 4)
             
