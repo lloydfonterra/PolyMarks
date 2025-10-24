@@ -173,29 +173,23 @@ class PolymarketClient:
     # Data normalization methods
     
     def _normalize_market(self, market: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Normalize market data from Polymarket format
-        
-        Args:
-            market: Raw market data from API
-            
-        Returns:
-            Normalized market data
-        """
+        """Normalize market data from Polymarket API"""
         return {
-            "id": market.get("id") or market.get("condition_id"),
-            "question": market.get("question"),
-            "description": market.get("description", ""),
-            "tokens": market.get("tokens", []),
-            "active": market.get("active", True),
-            "closed": market.get("closed", False),
-            "end_date": market.get("end_date") or market.get("expiration_date"),
-            "volume_24h": float(market.get("volume_24h", 0)),
-            "liquidity": float(market.get("liquidity", 0)),
-            "last_price": float(market.get("last_price", 0)) if market.get("last_price") else None,
+            "id": market.get("id", ""),
+            "question": market.get("question", ""),
+            "slug": market.get("slug", ""),
+            "category": market.get("category", ""),
+            "volume_24h": market.get("volume24hr", market.get("volume_24h", 0)),
+            "last_price": market.get("lastTradePrice", market.get("last_price", 0.5)),
+            "liquidity": market.get("liquidity", 0),
             "outcomes": market.get("outcomes", []),
-            "created_at": market.get("created_at"),
-            "updated_at": market.get("updated_at") or datetime.utcnow().isoformat(),
+            "outcome_prices": market.get("outcomePrices", market.get("outcome_prices", [])),
+            "market_maker_address": market.get("marketMakerAddress", market.get("market_maker_address", "")),
+            "active": market.get("active", False),
+            "closed": market.get("closed", False),
+            "created_at": market.get("createdAt", market.get("created_at", "")),
+            "updated_at": market.get("updatedAt", market.get("updated_at", "")),
+            "end_date": market.get("endDate", market.get("end_date", "")),
         }
     
     def _normalize_trade(self, trade: Dict[str, Any]) -> Dict[str, Any]:
