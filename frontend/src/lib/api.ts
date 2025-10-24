@@ -58,8 +58,10 @@ export const fetchRecentTrades = async (limit?: number): Promise<Trade[]> => {
   try {
     const url = new URL(`${API_BASE_URL}/api/trades/recent`)
     if (limit) url.searchParams.append('limit', limit.toString())
+    console.log('Fetching trades from:', url.toString())
     const response = await fetch(url.toString())
-    if (!response.ok) throw new Error('Failed to fetch trades')
+    console.log('Trades response status:', response.status)
+    if (!response.ok) throw new Error(`Failed to fetch trades: ${response.status}`)
     const data = await response.json()
     // Handle different response formats
     const trades = data.trades || data
