@@ -73,7 +73,11 @@ export default function RealtimeTradeFeed({ apiUrl, refreshIntervalMs = 2000 }: 
               }`}
             >
               <td className="px-6 py-4 font-mono text-xs text-conviction-300">{trade.wallet.substring(0, 10)}...</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-conviction-100 truncate max-w-xs">{trade.market}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-conviction-100 truncate max-w-xs">
+                <a href={`https://polymarket.com/search?q=${trade.market}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                  {trade.market}
+                </a>
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm">
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                   trade.type === 'buy' ? 'bg-accent-green/20 text-accent-green' : 'bg-accent-red/20 text-accent-red'

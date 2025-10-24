@@ -22,6 +22,20 @@ export default function Dashboard() {
         {/* Top Metrics */}
         <MetricsGrid />
 
+        {/* Polymarket Link Button */}
+        <div className="mt-6 flex justify-end">
+          <a
+            href="https://polymarket.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-3 rounded-lg bg-gradient-to-r from-whale-500 to-whale-600 hover:from-whale-600 hover:to-whale-700 text-white font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl"
+          >
+            <span>🎯</span>
+            Trade on Polymarket
+            <span>→</span>
+          </a>
+        </div>
+
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
           {/* Left Column - Trades */}
