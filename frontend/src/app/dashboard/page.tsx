@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, Zap, AlertCircle, Users } from 'lucide-react'
 import DashboardHeader from '@/components/Dashboard/DashboardHeader'
 import RealtimeTradeFeed from '@/components/Dashboard/RealtimeTradeFeed'
-import Leaderboard from '@/components/Dashboard/Leaderboard'
+import LeaderboardLive from '@/components/Dashboard/LeaderboardLive'
 import MetricsGrid from '@/components/Dashboard/MetricsGrid'
 
 export default function Dashboard() {
@@ -118,7 +118,7 @@ export default function Dashboard() {
 
         {/* Bottom Section - Leaderboard */}
         <div className="mt-8">
-          <Leaderboard />
+          <LeaderboardLive />
         </div>
       </main>
     </div>
