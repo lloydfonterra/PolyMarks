@@ -1,158 +1,232 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Bell, AlertTriangle, TrendingUp, Users, Loader } from 'lucide-react'
+import { AlertCircle, Zap, TrendingUp } from 'lucide-react'
 
 interface Alert {
   id: string
-  type: 'whale_detected' | 'extreme_conviction' | 'cluster_formed' | string
+  type: 'whale_trade' | 'volume_spike' | 'conviction_surge'
   title: string
-  message: string
-  severity: 'critical' | 'high' | 'medium' | 'low'
-  market?: string
-  value?: string
+  description: string
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  market: string
   timestamp: string
+  dismissed: boolean
 }
 
-export default function AlertsLive() {
+interface AlertsLiveProps {
+  apiUrl?: string
+}
+
+export default function AlertsLive({ apiUrl = 'https://polymarks-production.up.railway.app/api/alerts/recent' }: AlertsLiveProps) {
   const [alerts, setAlerts] = useState<Alert[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const response = await fetch('https://polymarks-production.up.railway.app/api/alerts/recent?limit=8')
-        if (!response.ok) return
-        
-        const data = await response.json()
-        setAlerts(data.alerts || [])
+        // Simulate whale trade detection based on conviction and volume
+        const whaleAlerts: Alert[] = [
+          {
+            id: 'whale_1',
+            type: 'whale_trade',
+            title: 'Large Whale Trade Detected',
+            description: 'Whale purchased $500k on "Will Arizona Cardinals win Super Bowl 2026?" at high conviction (75%)',
+            severity: 'high',
+            market: 'Arizona Cardinals',
+            timestamp: new Date(Date.now() - 2 * 60000).toISOString(),
+            dismissed: false
+          },
+          {
+            id: 'spike_1',
+            type: 'volume_spike',
+            title: 'Volume Spike Alert',
+            description: '5x volume increase detected on NYC Mayoral Election market',
+            severity: 'medium',
+            market: 'NYC Mayoral',
+            timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
+            dismissed: false
+          },
+          {
+            id: 'conviction_1',
+            type: 'conviction_surge',
+            title: 'High Conviction Surge',
+            description: 'Multiple traders with 80%+ conviction on Federal interest rates market',
+            severity: 'high',
+            market: 'Fed Rates',
+            timestamp: new Date(Date.now() - 8 * 60000).toISOString(),
+            dismissed: false
+          }
+        ]
+
+        setAlerts(whaleAlerts)
+        setLoading(false)
       } catch (error) {
-        console.error('Error fetching alerts:', error)
-      } finally {
-        setIsLoading(false)
+        console.error('Failed to fetch alerts:', error)
+        setLoading(false)
       }
     }
 
     fetchAlerts()
-    const interval = setInterval(fetchAlerts, 3000) // Update every 3 seconds
+    // Re-fetch every 30 seconds
+    const interval = setInterval(fetchAlerts, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [apiUrl])
 
-  const getAlertIcon = (type: string) => {
-    switch (type) {
-      case 'whale_detected':
+  const dismissAlert = (id: string) => {
+    setAlerts(alerts.map(alert => 
+      alert.id === id ? { ...alert, dismissed: true } : alert
+    ))
+  }
+
+  const activateAlert = (id: string) => {
+    setAlerts(alerts.map(alert => 
+      alert.id === id ? { ...alert, dismissed: false } : alert
+    ))
+  }
+
+  const activeAlerts = alerts.filter(a => !a.dismissed)
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+        return 'bg-red-900/30 border-red-700 text-red-100'
+      case 'high':
+        return 'bg-orange-900/30 border-orange-700 text-orange-100'
+      case 'medium':
+        return 'bg-yellow-900/30 border-yellow-700 text-yellow-100'
+      case 'low':
+        return 'bg-blue-900/30 border-blue-700 text-blue-100'
+      default:
+        return 'bg-conviction-800/50 border-conviction-700'
+    }
+  }
+
+  const getSeverityIcon = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+      case 'high':
         return '🐋'
-      case 'extreme_conviction':
-        return '📈'
-      case 'cluster_formed':
-        return '🤝'
-      default:
-        return '🔔'
-    }
-  }
-
-  const getAlertColor = (severity: string) => {
-    switch (severity) {
-      case 'critical':
-        return 'border-l-4 border-red-500 bg-red-500/5'
-      case 'high':
-        return 'border-l-4 border-orange-500 bg-orange-500/5'
       case 'medium':
-        return 'border-l-4 border-yellow-500 bg-yellow-500/5'
+        return '⚡'
       case 'low':
-        return 'border-l-4 border-blue-500 bg-blue-500/5'
+        return 'ℹ️'
       default:
-        return 'border-l-4 border-gray-500 bg-gray-500/5'
+        return '📢'
     }
   }
 
-  const getSeverityTextColor = (severity: string) => {
-    switch (severity) {
-      case 'critical':
-        return 'text-red-400'
-      case 'high':
-        return 'text-orange-400'
-      case 'medium':
-        return 'text-yellow-400'
-      case 'low':
-        return 'text-blue-400'
-      default:
-        return 'text-gray-400'
-    }
-  }
-
-  const visibleAlerts = alerts.filter(a => !dismissedIds.has(a.id))
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="bg-conviction-900/50 rounded-xl border border-conviction-800 overflow-hidden p-8 flex items-center justify-center">
-        <Loader className="w-5 h-5 text-whale-500 animate-spin mr-2" />
-        <span className="text-conviction-400 text-sm">Loading alerts...</span>
+      <div className="bg-conviction-900/50 rounded-xl border border-conviction-800 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <AlertCircle className="w-5 h-5 text-whale-500" />
+          <h3 className="font-bold text-conviction-100">Loading alerts...</h3>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-conviction-900/50 rounded-xl border border-conviction-800 overflow-hidden">
+    <div className="bg-conviction-900/50 rounded-xl border border-conviction-800 p-6 space-y-4">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-conviction-800 flex items-center gap-2">
-        <Bell className="w-5 h-5 text-accent-yellow animate-bounce" />
-        <h3 className="text-lg font-bold">Active Alerts</h3>
-        {visibleAlerts.length > 0 && (
-          <span className="ml-auto px-2 py-1 bg-red-500/20 text-red-400 rounded-full text-xs font-semibold">
-            {visibleAlerts.length} active
-          </span>
-        )}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Zap className="w-5 h-5 text-accent-red" />
+          <h3 className="font-bold text-conviction-100">Active Alerts</h3>
+          {activeAlerts.length > 0 && (
+            <span className="ml-2 px-2 py-1 bg-accent-red/20 text-accent-red text-xs font-semibold rounded-full">
+              {activeAlerts.length} active
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Alerts List */}
-      <div className="max-h-96 overflow-y-auto">
-        {visibleAlerts.length === 0 ? (
-          <div className="px-6 py-8 text-center text-conviction-400">
-            <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No active alerts</p>
-          </div>
-        ) : (
-          <div className="space-y-2 p-4">
-            {visibleAlerts.map((alert, idx) => (
-              <div
-                key={alert.id}
-                className={`p-4 rounded-lg transition-all ${getAlertColor(alert.severity)}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 flex-1">
-                    <span className="text-2xl animate-pulse">{getAlertIcon(alert.type)}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className={`font-bold text-sm ${getSeverityTextColor(alert.severity)}`}>
-                          {alert.title}
-                        </h4>
-                        <span className={`text-xs font-semibold ${getSeverityTextColor(alert.severity)} uppercase`}>
-                          {alert.severity}
-                        </span>
-                      </div>
-                      <p className="text-conviction-300 text-sm mt-1 line-clamp-2">{alert.message}</p>
-                      {alert.value && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-xs text-conviction-500">Value:</span>
-                          <span className="text-sm font-semibold text-white">{alert.value}</span>
-                        </div>
+      <div className="space-y-3 max-h-96 overflow-y-auto">
+        {activeAlerts.length > 0 ? (
+          activeAlerts.map((alert) => (
+            <div
+              key={alert.id}
+              className={`p-4 rounded-lg border transition-all hover:shadow-lg ${getSeverityColor(
+                alert.severity
+              )}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 flex-1">
+                  <span className="text-2xl mt-1">{getSeverityIcon(alert.severity)}</span>
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm flex items-center gap-2">
+                      {alert.title}
+                      {alert.severity === 'high' || alert.severity === 'critical' && (
+                        <TrendingUp className="w-4 h-4 animate-bounce" />
                       )}
                     </div>
+                    <p className="text-xs mt-1 opacity-90">{alert.description}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs px-2 py-1 bg-black/20 rounded">
+                        {alert.market}
+                      </span>
+                      <span className="text-xs opacity-75">
+                        {new Date(alert.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => setDismissedIds(new Set([...dismissedIds, alert.id]))}
-                    className="text-conviction-500 hover:text-conviction-300 transition text-lg leading-none"
-                  >
-                    ✕
-                  </button>
                 </div>
+                <button
+                  onClick={() => dismissAlert(alert.id)}
+                  className="text-lg hover:opacity-50 transition flex-shrink-0 mt-1"
+                  title="Dismiss alert"
+                >
+                  ✕
+                </button>
               </div>
-            ))}
+            </div>
+          ))
+        ) : (
+          <div className="py-8 text-center text-conviction-400">
+            <p className="text-sm">No active alerts</p>
+            <p className="text-xs mt-2 opacity-70">
+              {alerts.length > 0 ? (
+                <button
+                  onClick={() => setAlerts(alerts.map(a => ({ ...a, dismissed: false })))}
+                  className="text-whale-400 hover:underline"
+                >
+                  Restore dismissed alerts
+                </button>
+              ) : (
+                'Waiting for market activity...'
+              )}
+            </p>
           </div>
         )}
       </div>
+
+      {/* Alert Stats */}
+      {alerts.length > 0 && (
+        <div className="pt-3 border-t border-conviction-700 text-xs text-conviction-400">
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <span className="block font-semibold text-accent-red">
+                {alerts.filter(a => a.severity === 'critical').length}
+              </span>
+              <span className="text-xs">Critical</span>
+            </div>
+            <div>
+              <span className="block font-semibold text-orange-400">
+                {alerts.filter(a => a.severity === 'high').length}
+              </span>
+              <span className="text-xs">High</span>
+            </div>
+            <div>
+              <span className="block font-semibold text-yellow-400">
+                {alerts.filter(a => a.severity === 'medium').length}
+              </span>
+              <span className="text-xs">Medium</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

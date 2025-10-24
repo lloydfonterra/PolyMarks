@@ -3,17 +3,27 @@
 import { useEffect, useState, useRef } from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { Trade } from '../../lib/api'
+import { useWebSocketPrices } from '../../hooks/useWebSocketPrices'
 
 interface RealtimeTradeFeedProps {
   apiUrl: string
+  backendUrl: string
   refreshIntervalMs?: number
 }
 
-export default function RealtimeTradeFeed({ apiUrl, refreshIntervalMs = 2000 }: RealtimeTradeFeedProps) {
+export default function RealtimeTradeFeed({ apiUrl, backendUrl, refreshIntervalMs = 2000 }: RealtimeTradeFeedProps) {
   const [trades, setTrades] = useState<Trade[]>([])
   const [animatingIndices, setAnimatingIndices] = useState<Set<number>>(new Set())
   const [priceDirection, setPriceDirection] = useState<Map<string, 'up' | 'down'>>(new Map())
+  const [wsConnected, setWsConnected] = useState(false)
   const prevTradesRef = useRef<Trade[]>([])
+  
+  // Use WebSocket for real-time prices
+  const { prices: wsPrices, connected: wsConnected_ } = useWebSocketPrices(backendUrl)
+
+  useEffect(() => {
+    setWsConnected(wsConnected_)
+  }, [wsConnected_])
 
   useEffect(() => {
     const fetchTrades = async () => {
@@ -57,16 +67,23 @@ export default function RealtimeTradeFeed({ apiUrl, refreshIntervalMs = 2000 }: 
 
   return (
     <div className="overflow-x-auto">
+      {wsConnected && (
+        <div className="px-6 py-2 bg-accent-green/10 border-b border-accent-green/30 flex items-center gap-2">
+          <div className="w-2 h-2 bg-accent-green rounded-full animate-pulse"></div>
+          <span className="text-xs text-accent-green font-semibold">WebSocket Connected - Live Streaming Active</span>
+        </div>
+      )}
+      
       <table className="w-full text-sm">
         <thead className="bg-conviction-800/50 sticky top-0">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-conviction-400 uppercase">Wallet</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-conviction-400 uppercase">Market</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-conviction-400 uppercase">Type</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-conviction-400 uppercase">Size</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-conviction-400 uppercase">Price</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-conviction-400 uppercase">Conviction</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-conviction-400 uppercase">Time</th>
+            <th className="px-3 py-2 text-left text-xs font-semibold text-conviction-400 uppercase">Wallet</th>
+            <th className="px-3 py-2 text-left text-xs font-semibold text-conviction-400 uppercase">Market</th>
+            <th className="px-3 py-2 text-left text-xs font-semibold text-conviction-400 uppercase">Type</th>
+            <th className="px-3 py-2 text-left text-xs font-semibold text-conviction-400 uppercase">Size</th>
+            <th className="px-3 py-2 text-left text-xs font-semibold text-conviction-400 uppercase">Price</th>
+            <th className="px-3 py-2 text-left text-xs font-semibold text-conviction-400 uppercase">Conviction</th>
+            <th className="px-3 py-2 text-left text-xs font-semibold text-conviction-400 uppercase">Time</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-conviction-800">
@@ -95,7 +112,7 @@ export default function RealtimeTradeFeed({ apiUrl, refreshIntervalMs = 2000 }: 
               }`}>
                 ${!isNaN(trade.size) ? (trade.size / 1000).toFixed(1) : '0.0'}k
               </td>
-              <td className={`px-3 py-2 whitespace-nowrap text-sm font-bold transition-all w-16 ${
+              <td className={`px-3 py-2 whitespace-nowrap text-sm font-bold transition-all w-24 ${
                 animatingIndices.has(index) ? 'price-updated' : ''
               } ${
                 !isNaN(trade.price) ? (
@@ -104,7 +121,15 @@ export default function RealtimeTradeFeed({ apiUrl, refreshIntervalMs = 2000 }: 
                   'text-accent-yellow'
                 ) : 'text-conviction-200'
               }`}>
-                {!isNaN(trade.price) ? trade.price.toFixed(2) : '0.00'}¢
+                <div className="flex items-center gap-2">
+                  <span>{!isNaN(trade.price) ? trade.price.toFixed(2) : '0.00'}¢</span>
+                  {priceDirection.get(trade.market) === 'up' && (
+                    <TrendingUp className="w-4 h-4 text-accent-green animate-bounce" />
+                  )}
+                  {priceDirection.get(trade.market) === 'down' && (
+                    <TrendingDown className="w-4 h-4 text-accent-red animate-bounce" />
+                  )}
+                </div>
               </td>
               <td className="px-3 py-2">
                 <div className="flex items-center gap-2 min-w-32">

@@ -81,7 +81,11 @@ export default function Dashboard() {
               </div>
 
               {/* Trades List - Real-time updates every 2 seconds */}
-              <RealtimeTradeFeed apiUrl="https://polymarks-production.up.railway.app/api/trades/recent" refreshIntervalMs={2000} />
+              <RealtimeTradeFeed 
+                apiUrl="https://polymarks-production.up.railway.app/api/trades/recent" 
+                backendUrl="https://polymarks-production.up.railway.app"
+                refreshIntervalMs={2000} 
+              />
             </div>
           </div>
         </div>
