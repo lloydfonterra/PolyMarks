@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, Zap, AlertCircle, Users } from 'lucide-react'
 import DashboardHeader from '@/components/Dashboard/DashboardHeader'
-import TradeFeed from '@/components/Dashboard/TradeFeed'
+import RealtimeTradeFeed from '@/components/Dashboard/RealtimeTradeFeed'
 import Leaderboard from '@/components/Dashboard/Leaderboard'
 import MetricsGrid from '@/components/Dashboard/MetricsGrid'
 
@@ -46,8 +46,8 @@ export default function Dashboard() {
                 </select>
               </div>
 
-              {/* Trades List */}
-              <TradeFeed />
+              {/* Trades List - Real-time updates every 2 seconds */}
+              <RealtimeTradeFeed apiUrl="https://conviction-api.up.railway.app/api/trades" />
             </div>
           </div>
 
