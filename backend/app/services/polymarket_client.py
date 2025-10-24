@@ -57,14 +57,14 @@ class PolymarketClient:
         return await loop.run_in_executor(None, _sync_get)
     
     async def get_markets(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        """Fetch REAL ACTIVE markets with actual bid/ask spreads from CLOB API orderbooks"""
+        """Fetch REAL ACTIVE markets from CLOB API with available pricing data"""
         try:
             from datetime import datetime, timezone
             
-            # Fetch active markets from CLOB - this has ALL markets
+            # Fetch active markets from CLOB
             url = "https://clob.polymarket.com/markets"
             params = {
-                "limit": 500,  # Fetch batch of markets
+                "limit": limit * 3,  # Fetch extra to filter
                 "closed": False,  # Only not-closed markets
                 "offset": offset
             }
@@ -73,7 +73,9 @@ class PolymarketClient:
             # Response format: { "data": [...markets...], "next_cursor": "...", "limit": 1000, "count": 1000 }
             market_list = data.get("data", []) if isinstance(data, dict) else data
             
-            # Filter for truly active markets with future dates
+            logger.info(f"Fetched {len(market_list)} markets from CLOB API")
+            
+            # Filter for truly active markets with future end dates
             now = datetime.now(timezone.utc)
             filtered_markets = []
             
@@ -92,42 +94,25 @@ class PolymarketClient:
                     except:
                         pass  # If we can't parse, include it
                 
+                # Must have a question/title
+                if not m.get("question"):
+                    continue
+                
                 filtered_markets.append(m)
             
-            logger.info(f"Filtered {len(filtered_markets)} active markets from {len(market_list)} total")
+            logger.info(f"Filtered to {len(filtered_markets)} active markets with future dates")
             
-            # For each market, get its orderbook to get real bid/ask data
-            markets_with_prices = []
-            for m in filtered_markets[:limit * 2]:  # Fetch extra to compensate for failures
-                try:
-                    # Try to get the market's orderbook for real pricing
-                    condition_id = m.get("condition_id", m.get("id", ""))
-                    if condition_id:
-                        orderbook_url = f"https://clob.polymarket.com/book/{condition_id}"
-                        orderbook = await self._async_get(orderbook_url)
-                        
-                        # Extract best bid/ask from orderbook
-                        if orderbook and "bids" in orderbook and "asks" in orderbook:
-                            bids = orderbook.get("bids", [])
-                            asks = orderbook.get("asks", [])
-                            
-                            best_bid = float(bids[0]["price"]) if bids else 0
-                            best_ask = float(asks[0]["price"]) if asks else 0
-                            
-                            # Only include if we got real prices
-                            if best_bid > 0 and best_ask > 0 and best_bid != best_ask:
-                                m["bestBid"] = best_bid
-                                m["bestAsk"] = best_ask
-                                markets_with_prices.append(m)
-                except:
-                    # Skip markets where we can't get orderbook data
-                    pass
+            # Sort by volume if available, otherwise just return in order
+            try:
+                # Try to sort by liquidity/volume if available
+                filtered_markets.sort(
+                    key=lambda x: float(x.get("volume24hr", 0) or 0),
+                    reverse=True
+                )
+            except:
+                pass  # If sorting fails, just keep original order
             
-            # If we found markets with prices, use them; otherwise use any active markets
-            final_markets = markets_with_prices if markets_with_prices else filtered_markets
-            
-            logger.info(f"Returning {len(final_markets[:limit])} markets with price data")
-            return [self._normalize_market(m) for m in final_markets[:limit]]
+            return [self._normalize_market(m) for m in filtered_markets[:limit]]
         except Exception as e:
             logger.error(f"Error fetching markets: {e}", exc_info=True)
             return []
