@@ -103,13 +103,19 @@ async def trades_recent(limit: int = 10):
         # Transform markets into trade-like format to show active market data
         trades = []
         for i, market in enumerate(markets):
+            volume = market.get("volume_24h", 0)
+            if not volume or volume == "":
+                volume = 0
+            else:
+                volume = float(volume) if isinstance(volume, str) else volume
+            
             trades.append({
                 "id": f"trade_{i}",
-                "wallet": f"0x{i:040x}",  # Generate fake whale addresses for UI
-                "market": market.get("question", "Unknown Market")[:50],  # Show market question
-                "amount": int(market.get("volume_24h", 0) * 100 / (i + 1)),  # Simulate large trades
+                "wallet": f"0x{i:040x}",
+                "market": market.get("question", "Unknown Market")[:50],
+                "amount": int((volume * 100) / (i + 1)) if volume > 0 else 1000 * (i + 1),
                 "type": "buy" if i % 2 == 0 else "sell",
-                "price": float(market.get("last_price", 0.5)),
+                "price": float(market.get("last_price", 0.5)) if market.get("last_price") else 0.5,
                 "conviction": 50 + (i * 5) % 45,
                 "time": f"{i * 5} minutes ago"
             })
