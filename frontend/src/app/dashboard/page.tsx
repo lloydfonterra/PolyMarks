@@ -85,10 +85,10 @@ export default function Dashboard() {
         
         const newMarketsMockData = {
           new_markets: [
-            {"id": "new1", "question": "Ireland Election 2025", "volume_24h": 450000, "price": 0.94, "status": "NEW"},
-            {"id": "new2", "question": "Netherlands Parliament 2025", "volume_24h": 380000, "price": 0.77, "status": "NEW"},
-            {"id": "new3", "question": "Trump Malaysia Visit", "volume_24h": 290000, "price": 0.66, "status": "NEW"},
-            {"id": "new4", "question": "Gaza Humanitarian Crisis", "volume_24h": 580000, "price": 0.45, "status": "HOT"}
+            {"id": "new1", "question": "Ireland Election 2025", "volume": 450000, "price": 0.94, "status": "NEW", "description": "Ireland Election 2025"},
+            {"id": "new2", "question": "Netherlands Parliament 2025", "volume": 380000, "price": 0.77, "status": "NEW", "description": "Netherlands Parliament 2025"},
+            {"id": "new3", "question": "Trump Malaysia Visit", "volume": 290000, "price": 0.66, "status": "NEW", "description": "Trump Malaysia Visit"},
+            {"id": "new4", "question": "Gaza Humanitarian Crisis", "volume": 580000, "price": 0.45, "status": "HOT", "description": "Gaza Humanitarian Crisis"}
           ],
           count: 4,
           data_source: "mock",
