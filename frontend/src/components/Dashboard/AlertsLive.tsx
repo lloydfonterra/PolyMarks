@@ -22,7 +22,7 @@ export default function AlertsLive() {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const response = await fetch('https://conviction-api.up.railway.app/api/alerts/recent?limit=8')
+        const response = await fetch('https://polymarks-production.up.railway.app/api/alerts/recent?limit=8')
         if (!response.ok) return
         
         const data = await response.json()
