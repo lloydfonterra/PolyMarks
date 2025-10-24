@@ -95,24 +95,32 @@ export default function TradeFeed() {
           {trades.map((trade) => (
             <tr key={trade.id} className="hover:bg-conviction-800/30 transition">
               <td className="px-6 py-4 font-mono text-xs text-conviction-300">{trade.wallet}</td>
-              <td className="px-6 py-4 text-conviction-200 line-clamp-1">{trade.market}</td>
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  {trade.type === 'buy' ? (
-                    <>
-                      <TrendingUp className="w-4 h-4 text-accent-green" />
-                      <span className="text-accent-green font-semibold">BUY</span>
-                    </>
-                  ) : (
-                    <>
-                      <TrendingDown className="w-4 h-4 text-accent-red" />
-                      <span className="text-accent-red font-semibold">SELL</span>
-                    </>
-                  )}
-                </div>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-conviction-100">
+                {trade.market}
               </td>
-              <td className="px-6 py-4 text-conviction-200">${isNaN(trade.size / 1000) ? '0' : (trade.size / 1000).toFixed(1)}k</td>
-              <td className="px-6 py-4 text-conviction-200">{isNaN(trade.price * 100) ? '0' : (trade.price * 100).toFixed(0)}¢</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <span
+                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    trade.type === 'buy' ? 'bg-accent-green/20 text-accent-green' : 'bg-accent-red/20 text-accent-red'
+                  }`}
+                >
+                  {trade.type}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-conviction-200">
+                ${!isNaN(trade.size) ? (trade.size / 1000).toFixed(1) : '0.0'}k
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                {!isNaN(trade.price) ? (
+                  trade.price < 0.3 ? (
+                    <span className="text-accent-green">${trade.price.toFixed(2)}¢</span>
+                  ) : trade.price > 0.7 ? (
+                    <span className="text-accent-red">${trade.price.toFixed(2)}¢</span>
+                  ) : (
+                    <span className="text-conviction-400">${trade.price.toFixed(2)}¢</span>
+                  )
+                ) : '0.00'}¢
+              </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                   <div className="w-20 bg-conviction-800 rounded-full h-2">
