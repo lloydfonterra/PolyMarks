@@ -31,13 +31,9 @@ export default function TradeFeed() {
       try {
         const url = 'https://polymarks-production.up.railway.app/api/trades/recent?limit=10'
         setApiUrl(url)
-        console.log('TradeFeed: Fetching from', url)
         
-        const response = await fetch(url, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
+        // Use window.fetch explicitly
+        const response = await window.fetch(url)
         
         console.log('TradeFeed: Response status', response.status)
         console.log('TradeFeed: Response ok?', response.ok)
