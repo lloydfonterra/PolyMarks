@@ -65,7 +65,7 @@ class PolymarketClient:
             # It returns events with nested markets that have real bid/ask/volume
             url = "https://gamma-api.polymarket.com/events/pagination"
             params = {
-                "limit": limit,
+                "limit": 500,  # Fetch more to find enough liquid markets
                 "closed": False,
                 "archived": False,
                 "order": "volume",
@@ -83,7 +83,7 @@ class PolymarketClient:
                 if isinstance(event.get("markets"), list):
                     all_markets.extend(event.get("markets", []))
             
-            # Filter for truly active markets (must not be closed with future dates)
+            # Filter for TRULY active markets with REAL liquidity
             now = datetime.now(timezone.utc)
             truly_active_markets = []
             
@@ -102,10 +102,17 @@ class PolymarketClient:
                     except:
                         pass  # If we can't parse, include it
                 
-                truly_active_markets.append(m)
+                # PRIORITY: Only include markets with actual bid/ask spreads (liquidity)
+                best_bid = float(m.get("bestBid", 0)) if m.get("bestBid") else 0
+                best_ask = float(m.get("bestAsk", 0)) if m.get("bestAsk") else 0
+                
+                # Only include if we have real price data
+                if (best_bid > 0 or best_ask > 0) and (best_bid != best_ask or best_bid > 0):
+                    truly_active_markets.append(m)
             
-            logger.info(f"Fetched {len(event_list)} events from Gamma Events API, extracted {len(all_markets)} markets, {len(truly_active_markets)} are TRULY ACTIVE")
+            logger.info(f"Fetched {len(event_list)} events, extracted {len(all_markets)} markets, {len(truly_active_markets)} have REAL liquidity (bid/ask spreads)")
             
+            # Return only markets with real prices (limited to requested amount)
             return [self._normalize_market(m) for m in truly_active_markets[:limit]]
         except Exception as e:
             logger.error(f"Error fetching markets from Gamma Events API: {e}", exc_info=True)
