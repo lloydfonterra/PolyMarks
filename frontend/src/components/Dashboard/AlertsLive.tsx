@@ -53,44 +53,11 @@ export default function AlertsLive({ apiUrl = 'https://polymarks-production.up.r
             }
           }
         } catch (error) {
-          console.debug('Could not fetch real whale alerts, using demo data:', error);
+          console.debug('Could not fetch real whale alerts:', error);
         }
         
-        // Fallback to demo whale trade detection
-        const whaleAlerts: Alert[] = [
-          {
-            id: 'whale_1',
-            type: 'whale_trade',
-            title: 'Large Whale Trade Detected',
-            description: 'Whale purchased $500k on "Will Arizona Cardinals win Super Bowl 2026?" at high conviction (75%)',
-            severity: 'high',
-            market: 'Arizona Cardinals',
-            timestamp: new Date(Date.now() - 2 * 60000).toISOString(),
-            dismissed: false
-          },
-          {
-            id: 'spike_1',
-            type: 'volume_spike',
-            title: 'Volume Spike Alert',
-            description: '5x volume increase detected on NYC Mayoral Election market',
-            severity: 'medium',
-            market: 'NYC Mayoral',
-            timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
-            dismissed: false
-          },
-          {
-            id: 'conviction_1',
-            type: 'conviction_surge',
-            title: 'High Conviction Surge',
-            description: 'Multiple traders with 80%+ conviction on Federal interest rates market',
-            severity: 'high',
-            market: 'Fed Rates',
-            timestamp: new Date(Date.now() - 8 * 60000).toISOString(),
-            dismissed: false
-          }
-        ]
-
-        setAlerts(whaleAlerts)
+        // Only show REAL alerts - no mock data
+        setAlerts([])
         setLoading(false)
       } catch (error) {
         console.error('Failed to fetch alerts:', error)

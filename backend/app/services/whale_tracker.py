@@ -19,10 +19,10 @@ POLYMARKET_CONTRACTS = {
 
 # Whale detection thresholds
 WHALE_THRESHOLDS = {
-    "mega": 500000,      # > $500k
-    "large": 100000,     # > $100k
-    "medium": 50000,     # > $50k
-    "notable": 10000,    # > $10k
+    "mega": 100000,      # > $100k
+    "large": 50000,      # > $50k
+    "medium": 25000,     # > $25k
+    "notable": 10000,    # > $10k (main detection threshold)
 }
 
 
@@ -258,10 +258,10 @@ class WhaleTracker:
                     severity = "high"
                     whale_type = "LARGE WHALE"
                 elif value >= WHALE_THRESHOLDS["medium"]:
-                    severity = "high"
+                    severity = "medium"
                     whale_type = "WHALE"
                 else:
-                    severity = "medium"
+                    severity = "low"
                     whale_type = "NOTABLE"
 
                 # Create alert
