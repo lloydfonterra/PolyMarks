@@ -57,34 +57,43 @@ class PolymarketClient:
         return await loop.run_in_executor(None, _sync_get)
     
     async def get_markets(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        """Fetch REAL ACTIVE markets from Polymarket CLOB API (1000+ active markets)"""
+        """Fetch REAL ACTIVE markets from Gamma API events/pagination endpoint (has real prices and volumes)"""
         try:
             from datetime import datetime, timezone
             
-            # Use CLOB API for real active markets
-            url = f"{self.base_url}/markets"
-            params = {"limit": limit, "offset": offset}
+            # Use Gamma API events/pagination - this is what Polymarket website uses!
+            # It returns events with nested markets that have real bid/ask/volume
+            url = "https://gamma-api.polymarket.com/events/pagination"
+            params = {
+                "limit": limit,
+                "closed": False,
+                "archived": False,
+                "order": "volume",
+                "ascending": False
+            }
             data = await self._async_get(url, params=params)
             
-            # Handle response format
-            if isinstance(data, dict):
-                market_list = data.get("data", [])
-            elif isinstance(data, list):
-                market_list = data
-            else:
-                market_list = []
+            # Response format: { "data": [...events...], "count": X }
+            event_list = data.get("data", []) if isinstance(data, dict) else data
             
-            # Filter for TRULY active markets (must be open/not closed with future dates)
+            # Flatten: extract markets from each event
+            all_markets = []
+            for event in event_list:
+                # Each event has a "markets" array with real price data
+                if isinstance(event.get("markets"), list):
+                    all_markets.extend(event.get("markets", []))
+            
+            # Filter for truly active markets (must not be closed with future dates)
             now = datetime.now(timezone.utc)
             truly_active_markets = []
             
-            for m in market_list:
+            for m in all_markets:
                 # Must not be closed
                 if m.get("closed"):
                     continue
                 
                 # Must have a future end date
-                end_date_str = m.get("end_date_iso")
+                end_date_str = m.get("endDateIso")
                 if end_date_str:
                     try:
                         end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
@@ -95,11 +104,11 @@ class PolymarketClient:
                 
                 truly_active_markets.append(m)
             
-            logger.info(f"Fetched {len(market_list)} total markets, {len(truly_active_markets)} are TRULY ACTIVE (open, not closed, future end dates)")
+            logger.info(f"Fetched {len(event_list)} events from Gamma Events API, extracted {len(all_markets)} markets, {len(truly_active_markets)} are TRULY ACTIVE")
             
             return [self._normalize_market(m) for m in truly_active_markets[:limit]]
         except Exception as e:
-            logger.error(f"Error fetching markets from CLOB API: {e}", exc_info=True)
+            logger.error(f"Error fetching markets from Gamma Events API: {e}", exc_info=True)
             return []
     
     async def get_market(self, market_id: str) -> Optional[Dict[str, Any]]:
