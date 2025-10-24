@@ -113,9 +113,7 @@ class PolymarketClient:
             
             logger.info(f"Filtered to {len(filtered_markets)} active trending markets")
             
-            # Filter for REAL prices: bid > 0 or ask > 0 (not fallback 0.5)
-            real = [m for m in filtered_markets if float(m.get("bestBid") or 0) > 0 or float(m.get("bestAsk") or 0) > 0]
-            return [self._normalize_market(m) for m in real[:limit]]
+            return [self._normalize_market(m) for m in filtered_markets[:limit]]
             
         except Exception as e:
             logger.error(f"Error fetching trending markets: {e}", exc_info=True)

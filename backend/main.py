@@ -92,8 +92,16 @@ async def health_status():
 # ============ Trade Endpoints ============
 
 @app.get("/api/trades/recent")
-async def trades_recent(limit: int = 10, offset: int = 0):
-    """Get recent large (whale) trades from Polymarket"""
+async def trades_recent(
+    limit: int = 10,
+    offset: int = 0,
+    min_conviction: float = 0,
+    max_conviction: float = 100,
+    conviction_filter: str = "all",
+    spike_alert: bool = False,
+    sort_by: str = "conviction"
+):
+    """Get recent large (whale) trades from Polymarket with advanced filtering"""
     try:
         # Fetch top markets from Polymarket (these are real markets with real activity)
         markets = await polymarket_client.get_markets(limit=limit)
