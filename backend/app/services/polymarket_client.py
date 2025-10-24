@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,10 @@ class PolymarketClient:
         self._cache = {}
         self._cache_ttl = 60
         self.session = requests.Session()
+        # Price cache with TTL (5 seconds)
+        self._price_cache = {}
+        self._price_cache_ttl = 5
+        self._price_cache_time = 0
     
     def _get(self, url: str, **kwargs) -> Dict[str, Any]:
         """Synchronous GET request"""
@@ -194,10 +199,16 @@ class PolymarketClient:
             return []
     
     async def get_real_prices(self, market_ids: List[str]) -> Dict[str, float]:
-        """Fetch REAL bid/ask prices from CLOB /book endpoint with parallel requests"""
+        """Fetch REAL bid/ask prices with caching (5s TTL)"""
         try:
             if not market_ids:
                 return {}
+            
+            # Check cache first
+            cached = self._get_cached_prices(market_ids)
+            if cached:
+                logger.debug(f"Using cached prices for {len(cached)} markets")
+                return cached
             
             # Create tasks for all markets (limit to 20 for performance)
             tasks = []
@@ -211,6 +222,10 @@ class PolymarketClient:
             for market_id, price in zip(market_ids[:20], results):
                 if price is not None and not isinstance(price, Exception):
                     prices_data[market_id] = price
+            
+            # Cache the results
+            if prices_data:
+                self._set_cached_prices(prices_data)
             
             logger.info(f"Fetched real prices for {len(prices_data)}/{min(len(market_ids), 20)} markets")
             return prices_data
@@ -252,6 +267,24 @@ class PolymarketClient:
             logger.debug(f"Error fetching {market_id}: {e}")
             return None
 
+
+    def _get_cached_prices(self, market_ids: List[str]) -> Optional[Dict[str, float]]:
+        """Get cached prices if still valid"""
+        now = time.time()
+        if now - self._price_cache_time < self._price_cache_ttl:
+            # Cache still valid, return what we have
+            result = {}
+            for market_id in market_ids:
+                if market_id in self._price_cache:
+                    result[market_id] = self._price_cache[market_id]
+            if result:
+                return result
+        return None
+    
+    def _set_cached_prices(self, prices: Dict[str, float]):
+        """Update price cache"""
+        self._price_cache.update(prices)
+        self._price_cache_time = time.time()
     async def _async_post(self, url: str, json=None, **kwargs) -> Dict[str, Any]:
         """Run sync POST in thread - compatible with asyncio"""
         def _sync_post():

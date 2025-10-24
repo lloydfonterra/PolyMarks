@@ -91,6 +91,52 @@ async def health_status():
 
 # ============ Trade Endpoints ============
 
+async def broadcast_prices():
+    """Background task to broadcast live prices every 1 second"""
+    while True:
+        try:
+            await asyncio.sleep(1)
+            
+            # Get latest prices
+            markets = await polymarket_client.get_markets(limit=20)
+            real_prices = await polymarket_client.get_real_prices(
+                [m.get("id", "") for m in markets if m.get("id")]
+            )
+            
+            # Build message with price updates
+            price_updates = []
+            for market in markets[:10]:
+                market_id = market.get("id", "")
+                price = real_prices.get(market_id)
+                
+                if price is None:
+                    best_bid = float(market.get("bestBid", 0)) if market.get("bestBid") else 0
+                    best_ask = float(market.get("bestAsk", 0)) if market.get("bestAsk") else 0
+                    if best_bid > 0 and best_ask > 0:
+                        price = (best_bid + best_ask) / 2
+                
+                if price:
+                    price_updates.append({
+                        "market_id": market_id,
+                        "market_name": market.get("question", ""),
+                        "price": round(max(0.01, min(0.99, price)), 4),
+                        "timestamp": datetime.utcnow().isoformat()
+                    })
+            
+            if price_updates:
+                await manager.broadcast({
+                    "type": "price_update",
+                    "data": price_updates
+                })
+        except Exception as e:
+            logger.error(f"Error in broadcast_prices: {e}")
+            await asyncio.sleep(1)
+
+@app.on_event("startup")
+async def startup_broadcast():
+    """Start background price broadcaster"""
+    asyncio.create_task(broadcast_prices())
+
 @app.get("/api/trades/recent")
 async def trades_recent(
     limit: int = 10,
