@@ -4,27 +4,57 @@ import { useEffect, useState } from 'react'
 import { Activity, TrendingUp, Zap, BarChart3, Loader } from 'lucide-react'
 import { fetchMetrics, Metrics } from '../../lib/api'
 
-interface MetricsGridProps {
-  period: string
-}
-
-export default function MetricsGrid({ period }: MetricsGridProps) {
-  const [metrics, setMetrics] = useState<Metrics | null>(null)
+export default function MetricsGrid() {
+  const [metrics, setMetrics] = useState<Metrics>({
+    whale_trades: 0,
+    whale_trades_change: 0,
+    avg_win_rate: 0,
+    avg_win_rate_change: 0,
+    active_wallets: 0,
+    active_wallets_change: 0,
+    market_volume: 0,
+    market_volume_change: 0,
+  })
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const loadMetrics = async () => {
-      setIsLoading(true)
       try {
-        const data = await fetchMetrics(period)
-        setMetrics(data)
+        console.log('Starting to fetch metrics...')
+        const API_URL = 'https://polymarks-production.up.railway.app/api/health/status'
+        console.log('Fetching from:', API_URL)
+        
+        const response = await fetch(API_URL)
+        console.log('Response status:', response.status)
+        
+        if (response.ok) {
+          const data = await response.json()
+          console.log('API Response:', data)
+          setMetrics({
+            whale_trades: data.whale_trades || 0,
+            whale_trades_change: data.whale_trades_change || 0,
+            avg_win_rate: data.avg_win_rate || 0,
+            avg_win_rate_change: data.avg_win_rate_change || 0,
+            active_wallets: data.active_wallets || 0,
+            active_wallets_change: data.active_wallets_change || 0,
+            market_volume: data.market_volume || 0,
+            market_volume_change: data.market_volume_change || 0,
+          })
+        } else {
+          console.error('API returned status:', response.status)
+        }
+      } catch (error) {
+        console.error('Error fetching metrics:', error)
       } finally {
         setIsLoading(false)
       }
     }
 
     loadMetrics()
-  }, [period])
+    // Refresh every 30 seconds
+    const interval = setInterval(loadMetrics, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const metricConfigs = [
     {
