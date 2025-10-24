@@ -65,7 +65,7 @@ class PolymarketClient:
             # It returns events with nested markets that have real bid/ask/volume
             url = "https://gamma-api.polymarket.com/events/pagination"
             params = {
-                "limit": 500,  # Fetch more to find enough liquid markets
+                "limit": 500,  # Fetch more to find enough with data
                 "closed": False,
                 "archived": False,
                 "order": "volume",
@@ -83,9 +83,10 @@ class PolymarketClient:
                 if isinstance(event.get("markets"), list):
                     all_markets.extend(event.get("markets", []))
             
-            # Filter for TRULY active markets with REAL liquidity
+            # Filter for TRULY active markets
             now = datetime.now(timezone.utc)
-            truly_active_markets = []
+            liquid_markets = []
+            any_active_markets = []
             
             for m in all_markets:
                 # Must not be closed
@@ -102,18 +103,24 @@ class PolymarketClient:
                     except:
                         pass  # If we can't parse, include it
                 
-                # PRIORITY: Only include markets with actual bid/ask spreads (liquidity)
+                any_active_markets.append(m)
+                
+                # PRIORITY: Prefer markets with actual bid/ask spreads (liquidity)
                 best_bid = float(m.get("bestBid", 0)) if m.get("bestBid") else 0
                 best_ask = float(m.get("bestAsk", 0)) if m.get("bestAsk") else 0
                 
-                # Only include if we have real price data
-                if (best_bid > 0 or best_ask > 0) and (best_bid != best_ask or best_bid > 0):
-                    truly_active_markets.append(m)
+                # Include if we have real price data
+                if (best_bid > 0 or best_ask > 0):
+                    liquid_markets.append(m)
             
-            logger.info(f"Fetched {len(event_list)} events, extracted {len(all_markets)} markets, {len(truly_active_markets)} have REAL liquidity (bid/ask spreads)")
+            # Use liquid markets if available, otherwise use any active markets
+            markets_to_show = liquid_markets if len(liquid_markets) >= limit else any_active_markets
             
-            # Return only markets with real prices (limited to requested amount)
-            return [self._normalize_market(m) for m in truly_active_markets[:limit]]
+            logger.info(f"Fetched {len(event_list)} events, extracted {len(all_markets)} markets. "
+                       f"Liquid: {len(liquid_markets)}, Active: {len(any_active_markets)}, Showing: {len(markets_to_show[:limit])}")
+            
+            # Return only requested amount
+            return [self._normalize_market(m) for m in markets_to_show[:limit]]
         except Exception as e:
             logger.error(f"Error fetching markets from Gamma Events API: {e}", exc_info=True)
             return []
