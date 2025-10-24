@@ -57,64 +57,65 @@ class PolymarketClient:
         return await loop.run_in_executor(None, _sync_get)
     
     async def get_markets(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        """Fetch REAL ACTIVE markets from CLOB API with available pricing data"""
+        """Fetch TOP TRENDING markets from Gamma API sorted by 24h volume with REAL prices"""
         try:
             from datetime import datetime, timezone
             
-            # Fetch active markets from CLOB
-            url = "https://clob.polymarket.com/markets"
+            # Fetch trending markets sorted by volume - this is the REAL trending data!
+            url = "https://gamma-api.polymarket.com/events/pagination"
             params = {
-                "limit": limit * 3,  # Fetch extra to filter
-                "closed": False,  # Only not-closed markets
-                "offset": offset
+                "limit": max(limit, 20),  # Always get at least 20 to find the best
+                "closed": False,
+                "archived": False,
+                "order": "volume",
+                "ascending": False  # Highest volume first
             }
             data = await self._async_get(url, params=params)
             
-            # Response format: { "data": [...markets...], "next_cursor": "...", "limit": 1000, "count": 1000 }
-            market_list = data.get("data", []) if isinstance(data, dict) else data
+            # Response format: { "data": [...events...], "count": X }
+            event_list = data.get("data", []) if isinstance(data, dict) else data
             
-            logger.info(f"Fetched {len(market_list)} markets from CLOB API")
+            logger.info(f"Fetched {len(event_list)} trending events from Gamma API (sorted by volume)")
             
-            # Filter for truly active markets with future end dates
+            # Filter for truly active markets
             now = datetime.now(timezone.utc)
             filtered_markets = []
             
-            for m in market_list:
+            for event in event_list:
+                # Must have markets
+                if not isinstance(event.get("markets"), list):
+                    continue
+                
+                # Take the first/main market from this event
+                main_market = event.get("markets", [{}])[0]
+                
                 # Must not be closed
-                if m.get("closed"):
+                if main_market.get("closed"):
                     continue
                 
                 # Must have a future end date
-                end_date_str = m.get("endDateIso")
+                end_date_str = main_market.get("endDateIso")
                 if end_date_str:
                     try:
                         end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
                         if end_date < now:
                             continue  # Skip expired markets
                     except:
-                        pass  # If we can't parse, include it
+                        pass
                 
                 # Must have a question/title
-                if not m.get("question"):
+                if not main_market.get("question"):
                     continue
                 
-                filtered_markets.append(m)
+                # Add event context to market
+                main_market["event_title"] = event.get("title", "")
+                filtered_markets.append(main_market)
             
-            logger.info(f"Filtered to {len(filtered_markets)} active markets with future dates")
-            
-            # Sort by volume if available, otherwise just return in order
-            try:
-                # Try to sort by liquidity/volume if available
-                filtered_markets.sort(
-                    key=lambda x: float(x.get("volume24hr", 0) or 0),
-                    reverse=True
-                )
-            except:
-                pass  # If sorting fails, just keep original order
+            logger.info(f"Filtered to {len(filtered_markets)} active trending markets")
             
             return [self._normalize_market(m) for m in filtered_markets[:limit]]
         except Exception as e:
-            logger.error(f"Error fetching markets: {e}", exc_info=True)
+            logger.error(f"Error fetching trending markets: {e}", exc_info=True)
             return []
     
     async def get_market(self, market_id: str) -> Optional[Dict[str, Any]]:
