@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { TrendingUp, TrendingDown, Loader } from 'lucide-react'
-import { fetchRecentTrades, Trade } from '@/lib/api'
+import { fetchRecentTrades, Trade } from '../../lib/api'
 
 export default function TradeFeed() {
   const [trades, setTrades] = useState<Trade[]>([])

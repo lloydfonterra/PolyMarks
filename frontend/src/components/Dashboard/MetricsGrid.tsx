@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { TrendingUp, TrendingDown, Zap, Users, Loader } from 'lucide-react'
-import { fetchMetrics, Metrics } from '@/lib/api'
+import { Activity, TrendingUp, Zap, BarChart3, Loader } from 'lucide-react'
+import { fetchMetrics, Metrics } from '../../lib/api'
 
 interface MetricsGridProps {
   period: string
@@ -44,7 +44,7 @@ export default function MetricsGrid({ period }: MetricsGridProps) {
       format: (v: number) => `${v.toFixed(1)}%`,
     },
     {
-      icon: Users,
+      icon: Activity,
       label: 'Active Wallets',
       key: 'active_wallets' as const,
       changeKey: 'active_wallets_change' as const,
@@ -52,7 +52,7 @@ export default function MetricsGrid({ period }: MetricsGridProps) {
       format: (v: number) => v.toLocaleString(),
     },
     {
-      icon: TrendingDown,
+      icon: BarChart3,
       label: 'Market Volume',
       key: 'market_volume' as const,
       changeKey: 'market_volume_change' as const,

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Trophy, TrendingUp, TrendingDown, Loader } from 'lucide-react'
-import { fetchTopLeaderboard, Trader } from '@/lib/api'
+import { fetchTopLeaderboard, Trader } from '../../lib/api'
 
 export default function Leaderboard() {
   const [traders, setTraders] = useState<Trader[]>([])
