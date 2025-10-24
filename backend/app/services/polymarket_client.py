@@ -61,15 +61,23 @@ class PolymarketClient:
         try:
             url = f"{self.base_url}/markets"
             params = {"limit": limit, "offset": offset}
-            markets = await self._async_get(url, params=params)
+            data = await self._async_get(url, params=params)
             
-            # Handle the Polymarket API format
-            market_list = markets.get("data", []) if isinstance(markets, dict) else markets
+            # Handle the Polymarket API response format
+            # API returns: {"markets": [...], "count": X, ...} OR directly as array
+            if isinstance(data, dict):
+                # Try to get markets from 'markets' key, then 'data' key
+                market_list = data.get("markets", data.get("data", []))
+            elif isinstance(data, list):
+                # Direct array format
+                market_list = data
+            else:
+                market_list = []
             
             logger.info(f"Fetched {len(market_list)} markets from Polymarket")
             return [self._normalize_market(m) for m in market_list[:limit]]
         except Exception as e:
-            logger.error(f"Error fetching markets: {e}")
+            logger.error(f"Error fetching markets: {e}", exc_info=True)
             return []
     
     async def get_market(self, market_id: str) -> Optional[Dict[str, Any]]:
