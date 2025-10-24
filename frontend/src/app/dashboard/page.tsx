@@ -5,8 +5,8 @@ import { TrendingUp, TrendingDown, Zap, AlertCircle, Users } from 'lucide-react'
 import DashboardHeader from '@/components/Dashboard/DashboardHeader'
 import RealtimeTradeFeed from '@/components/Dashboard/RealtimeTradeFeed'
 import LeaderboardLive from '@/components/Dashboard/LeaderboardLive'
-import MetricsGrid from '@/components/Dashboard/MetricsGrid'
 import AlertsLive from '@/components/Dashboard/AlertsLive'
+import MetricsGrid from '@/components/Dashboard/MetricsGrid'
 
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState('24h')
@@ -48,7 +48,7 @@ export default function Dashboard() {
               </div>
 
               {/* Trades List - Real-time updates every 2 seconds */}
-              <RealtimeTradeFeed apiUrl="https://conviction-api.up.railway.app/api/trades" />
+              <RealtimeTradeFeed apiUrl="https://polymarks-production.up.railway.app/api/trades/recent" refreshIntervalMs={2000} />
             </div>
           </div>
 
