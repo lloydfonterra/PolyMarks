@@ -12,6 +12,7 @@ interface RealtimeTradeFeedProps {
 export default function RealtimeTradeFeed({ apiUrl, refreshIntervalMs = 2000 }: RealtimeTradeFeedProps) {
   const [trades, setTrades] = useState<Trade[]>([])
   const [animatingIndices, setAnimatingIndices] = useState<Set<number>>(new Set())
+  const [priceDirection, setPriceDirection] = useState<Map<string, 'up' | 'down'>>(new Map())
   const prevTradesRef = useRef<Trade[]>([])
 
   useEffect(() => {
@@ -23,17 +24,21 @@ export default function RealtimeTradeFeed({ apiUrl, refreshIntervalMs = 2000 }: 
         const data = await response.json()
         const newTrades = data.trades || []
         
-        // Find indices that changed (new prices)
+        // Find indices that changed (new prices) and track direction
         const changedIndices = new Set<number>()
+        const newDirections = new Map<string, 'up' | 'down'>(priceDirection)
         newTrades.forEach((trade: Trade, index: number) => {
           const prevTrade = prevTradesRef.current[index]
           if (prevTrade && prevTrade.price !== trade.price) {
             changedIndices.add(index)
+            // Track price direction: up if new price > old price, down otherwise
+            newDirections.set(trade.market, trade.price > prevTrade.price ? 'up' : 'down')
           }
         })
         
         if (changedIndices.size > 0) {
           setAnimatingIndices(changedIndices)
+          setPriceDirection(newDirections)
           setTimeout(() => setAnimatingIndices(new Set()), 600)
         }
         

@@ -227,6 +227,59 @@ class PolymarketClient:
             "end_date": market.get("endDate", market.get("end_date", "")),
         }
     
+    def _calculate_conviction_score(self, market: Dict[str, Any]) -> float:
+        """Calculate conviction score based on market conditions (0-100)
+        
+        Conviction factors:
+        1. Spread Tightness (40%): Tight bid-ask spread = high conviction
+        2. Liquidity (35%): High volume/liquidity = high conviction
+        3. Price Positioning (25%): Price near extremes (0.1 or 0.9) = lower conviction
+        """
+        score = 0
+        
+        # Factor 1: Spread Tightness (40 points max)
+        best_bid = float(market.get("bestBid", 0)) if market.get("bestBid") else 0
+        best_ask = float(market.get("bestAsk", 1)) if market.get("bestAsk") else 1
+        
+        if best_bid > 0 and best_ask > 0:
+            spread = best_ask - best_bid
+            midpoint = (best_bid + best_ask) / 2
+            spread_pct = (spread / midpoint * 100) if midpoint > 0 else 100
+            
+            # Tight spread (< 2%) = 40 points, wide spread (> 10%) = 0 points
+            if spread_pct < 2:
+                spread_score = 40
+            elif spread_pct > 10:
+                spread_score = 0
+            else:
+                spread_score = 40 * (1 - (spread_pct - 2) / 8)
+            score += max(0, spread_score)
+        
+        # Factor 2: Liquidity (35 points max)
+        volume = float(market.get("volume24hr", 0)) if market.get("volume24hr") else 0
+        liquidity = float(market.get("liquidity", 0)) if market.get("liquidity") else 0
+        
+        # Normalize volume: >$1M = 35 points, <$10k = 0 points
+        if volume > 1000000:
+            volume_score = 35
+        elif volume > 100000:
+            volume_score = 35 * (volume / 1000000)
+        elif volume > 10000:
+            volume_score = 35 * (volume / 100000) * 0.5
+        else:
+            volume_score = 0
+        score += max(0, min(35, volume_score))
+        
+        # Factor 3: Price Positioning (25 points max)
+        mid_price = (best_bid + best_ask) / 2 if (best_bid + best_ask) > 0 else 0.5
+        
+        # Distance from extremes: 0.5 price (middle) = 25 points, 0.1 or 0.9 = 0 points
+        distance_from_center = abs(mid_price - 0.5)  # 0 to 0.5
+        price_score = 25 * (1 - distance_from_center / 0.5)  # 25 to 0
+        score += max(0, price_score)
+        
+        return round(min(100, max(0, score)), 1)
+    
     def _normalize_trade(self, trade: Dict[str, Any]) -> Dict[str, Any]:
         """
         Normalize trade data from Polymarket format

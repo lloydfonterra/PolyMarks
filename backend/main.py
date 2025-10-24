@@ -133,6 +133,9 @@ async def trades_recent(limit: int = 10):
             else:
                 market_display = question
             
+            # Calculate REAL conviction score based on market conditions
+            conviction = polymarket_client._calculate_conviction_score(market)
+            
             trades.append({
                 "id": f"trade_{i}",
                 "wallet": f"0x{i:040x}",
@@ -140,7 +143,7 @@ async def trades_recent(limit: int = 10):
                 "amount": int(volume) if volume > 0 else 100000,  # Use real volume directly
                 "type": "buy" if i % 2 == 0 else "sell",
                 "price": price,  # Real price already rounded
-                "conviction": 50 + (i * 5) % 45,
+                "conviction": conviction,  # REAL conviction from market analysis
                 "time": f"{i * 5} minutes ago"
             })
         
