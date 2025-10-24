@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply scroll-smooth;
+}
+
+html {
+  @apply scroll-smooth;
+}
+
+body {
+  @apply bg-conviction-950 text-white;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-conviction-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-conviction-700 rounded-full hover:bg-conviction-600;
+}
+
+/* Smooth transitions */
+a,
+button {
+  @apply transition-all;
+}
+
+/* Glass effect */
+.glass {
+  @apply backdrop-blur-md bg-white/10 border border-white/20;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-conviction-400 to-whale-500 bg-clip-text text-transparent;
+}
+
+/* Glowing effect */
+.glow {
+  @apply shadow-lg shadow-whale-500/50;
+}
+
+/* Animation utilities */
+@keyframes float {
+  0%, 100% {
+    @apply translate-y-0;
+  }
+  50% {
+    @apply translate-y-2;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    @apply opacity-100;
+  }
+  50% {
+    @apply opacity-50;
+  }
+}
+
+.float {
+  @apply animate-float;
+}
+
+.pulse-glow {
+  @apply animate-pulse-glow;
+}
