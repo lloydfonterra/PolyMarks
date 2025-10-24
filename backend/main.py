@@ -672,6 +672,27 @@ async def get_trending_markets(limit: int = 10):
     try:
         markets = await polymarket_client.get_markets()
         
+        # Log what we got
+        if not markets:
+            logger.warning("No markets returned from polymarket_client.get_markets()")
+            # Return empty response instead of error
+            return {
+                "trending": {
+                    "Politics Markets": [],
+                    "Sports Events": [],
+                    "Finance Markets": [],
+                    "Tech & Crypto": [],
+                    "Other": []
+                },
+                "count": 0,
+                "data_source": "polymarket",
+                "real_data": False,
+                "warning": "No markets available",
+                "timestamp": datetime.now().isoformat()
+            }
+        
+        logger.info(f"Fetched {len(markets)} markets")
+        
         # Sort by volume and filter
         sorted_markets = sorted(
             markets,
@@ -711,11 +732,18 @@ async def get_trending_markets(limit: int = 10):
             "timestamp": datetime.now().isoformat()
         }
         
+        logger.info(f"Returning {result['count']} categorized markets")
         return result
     except Exception as e:
         logger.error(f"Error fetching trending markets: {e}", exc_info=True)
         return {
-            "trending": {},
+            "trending": {
+                "Politics Markets": [],
+                "Sports Events": [],
+                "Finance Markets": [],
+                "Tech & Crypto": [],
+                "Other": []
+            },
             "count": 0,
             "error": str(e),
             "data_source": "polymarket"
@@ -727,6 +755,20 @@ async def get_new_markets(limit: int = 10, hours: int = 24):
     """Get newly created markets from Polymarket"""
     try:
         markets = await polymarket_client.get_markets()
+        
+        # Log what we got
+        if not markets:
+            logger.warning("No markets returned from polymarket_client.get_markets() for new markets")
+            return {
+                "new_markets": [],
+                "count": 0,
+                "data_source": "polymarket",
+                "real_data": False,
+                "warning": "No markets available",
+                "timestamp": datetime.now().isoformat()
+            }
+        
+        logger.info(f"Fetched {len(markets)} markets for new markets check")
         
         # Filter for recently created markets (simplified - check by last_price update)
         # In production, you'd track creation_date from the API
@@ -761,6 +803,7 @@ async def get_new_markets(limit: int = 10, hours: int = 24):
             "timestamp": datetime.now().isoformat()
         }
         
+        logger.info(f"Returning {len(formatted)} new markets")
         return result
     except Exception as e:
         logger.error(f"Error fetching new markets: {e}", exc_info=True)
