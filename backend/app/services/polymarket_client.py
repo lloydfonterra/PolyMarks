@@ -174,13 +174,23 @@ class PolymarketClient:
     
     def _normalize_market(self, market: Dict[str, Any]) -> Dict[str, Any]:
         """Normalize market data from Polymarket API"""
+        # Use best bid/ask for real-time pricing if available
+        best_bid = float(market.get("bestBid", 0)) if market.get("bestBid") else 0
+        best_ask = float(market.get("bestAsk", 1)) if market.get("bestAsk") else 1
+        
+        # Calculate midpoint price - more reliable than lastTradePrice which is often 0
+        if best_bid > 0 or best_ask > 0:
+            midpoint_price = (best_bid + best_ask) / 2
+        else:
+            midpoint_price = float(market.get("lastTradePrice", 0.5)) if market.get("lastTradePrice") else 0.5
+        
         return {
             "id": market.get("id", ""),
             "question": market.get("question", ""),
             "slug": market.get("slug", ""),
             "category": market.get("category", ""),
             "volume_24h": market.get("volume24hr", market.get("volume_24h", 0)),
-            "last_price": market.get("lastTradePrice", market.get("last_price", 0.5)),
+            "last_price": midpoint_price,
             "liquidity": market.get("liquidity", 0),
             "outcomes": market.get("outcomes", []),
             "outcome_prices": market.get("outcomePrices", market.get("outcome_prices", [])),
