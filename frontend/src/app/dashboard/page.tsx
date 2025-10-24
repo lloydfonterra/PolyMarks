@@ -7,10 +7,26 @@ import RealtimeTradeFeed from '@/components/Dashboard/RealtimeTradeFeed'
 import LeaderboardLive from '@/components/Dashboard/LeaderboardLive'
 import AlertsLive from '@/components/Dashboard/AlertsLive'
 import MetricsGrid from '@/components/Dashboard/MetricsGrid'
+import DashboardFilters from '@/components/Dashboard/DashboardFilters'
+
+interface FilterOptions {
+  convictionLevel: 'all' | 'high' | 'medium' | 'low'
+  minConviction: number
+  maxConviction: number
+  volumeSpike: boolean
+  sortBy: 'conviction' | 'volume' | 'price'
+}
 
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState('24h')
   const [isLoading, setIsLoading] = useState(false)
+  const [filters, setFilters] = useState<FilterOptions>({
+    convictionLevel: 'all',
+    minConviction: 0,
+    maxConviction: 100,
+    volumeSpike: false,
+    sortBy: 'conviction'
+  })
 
   return (
     <div className="min-h-screen bg-conviction-950 text-white">
@@ -21,6 +37,9 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Top Metrics */}
         <MetricsGrid />
+
+        {/* Dashboard Filters & Views */}
+        <DashboardFilters currentFilters={filters} onFiltersChange={setFilters} />
 
         {/* Polymarket Link Button */}
         <div className="mt-6 flex justify-end">

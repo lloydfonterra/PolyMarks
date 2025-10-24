@@ -92,7 +92,7 @@ async def health_status():
 # ============ Trade Endpoints ============
 
 @app.get("/api/trades/recent")
-async def trades_recent(limit: int = 10):
+async def trades_recent(limit: int = 10, offset: int = 0):
     """Get recent large (whale) trades from Polymarket"""
     try:
         # Fetch top markets from Polymarket (these are real markets with real activity)
@@ -136,23 +136,70 @@ async def trades_recent(limit: int = 10):
             # Calculate REAL conviction score based on market conditions
             conviction = polymarket_client._calculate_conviction_score(market)
             
+            # Detect volume spike
+            volume_spike = polymarket_client._detect_volume_spike(market, baseline_volume=100000)
+            
+            # Generate trader history (simulate for now)
+            trader_history = {
+                "trade_count": 5 + (i % 15),
+                "win_rate": 0.55 + (i * 0.03) % 0.35,
+                "market_count": 3 + (i % 8)
+            }
+            wallet_conviction = polymarket_client._calculate_wallet_conviction(f"0x{i:040x}", trader_history)
+            
             trades.append({
                 "id": f"trade_{i}",
                 "wallet": f"0x{i:040x}",
-                "market": market_display,  # Full market name with smart truncation
-                "amount": int(volume) if volume > 0 else 100000,  # Use real volume directly
+                "market": market_display,
+                "amount": int(volume) if volume > 0 else 100000,
                 "type": "buy" if i % 2 == 0 else "sell",
-                "price": price,  # Real price already rounded
-                "conviction": conviction,  # REAL conviction from market analysis
+                "price": price,
+                "conviction": conviction,
+                "wallet_conviction": wallet_conviction,
+                "volume_spike": volume_spike,
                 "time": f"{i * 5} minutes ago"
             })
         
-        # If we got real markets, return them as trades
+        # If we got real markets, apply filters and sorting
         if trades:
-            logger.info(f"Returning {len(trades)} real markets as trades")
+            # Apply conviction filter
+            if conviction_filter == "high":
+                trades = [t for t in trades if t.get("conviction", 0) > 70]
+            elif conviction_filter == "medium":
+                trades = [t for t in trades if 40 <= t.get("conviction", 0) <= 70]
+            elif conviction_filter == "low":
+                trades = [t for t in trades if t.get("conviction", 0) < 40]
+            
+            # Apply conviction range filter
+            trades = [t for t in trades if min_conviction <= t.get("conviction", 0) <= max_conviction]
+            
+            # Apply volume spike alert filter
+            if spike_alert:
+                trades = [t for t in trades if t.get("volume_spike", {}).get("alert", False)]
+            
+            # Apply sorting
+            if sort_by == "conviction":
+                trades = sorted(trades, key=lambda x: x.get("conviction", 0), reverse=True)
+            elif sort_by == "volume":
+                trades = sorted(trades, key=lambda x: x.get("amount", 0), reverse=True)
+            elif sort_by == "price":
+                trades = sorted(trades, key=lambda x: x.get("price", 0.5), reverse=True)
+            
+            # Apply pagination
+            filtered_trades = trades[offset:offset+limit]
+            
+            logger.info(f"Returning {len(filtered_trades)} filtered trades")
             return {
-                "trades": trades,
-                "count": len(trades)
+                "trades": filtered_trades,
+                "count": len(filtered_trades),
+                "total": len(trades),
+                "filters": {
+                    "conviction_filter": conviction_filter,
+                    "min_conviction": min_conviction,
+                    "max_conviction": max_conviction,
+                    "spike_alert": spike_alert,
+                    "sort_by": sort_by
+                }
             }
         
         # Fallback to mock if no markets
