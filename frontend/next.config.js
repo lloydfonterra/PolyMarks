@@ -25,8 +25,9 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  // Ensure NEXT_PUBLIC_API_URL is available in the build
+  publicRuntimeConfig: {
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001',
   },
 }
 
