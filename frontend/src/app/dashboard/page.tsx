@@ -90,6 +90,101 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Market Trending & New Markets Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          {/* Market Trending */}
+          <div className="bg-conviction-900/50 rounded-xl border border-conviction-800 overflow-hidden">
+            <div className="px-6 py-4 border-b border-conviction-800">
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-accent-green" />
+                Market Trending
+              </h3>
+              <p className="text-conviction-400 text-sm mt-1">Most volume in last 24h</p>
+            </div>
+            <div className="px-6 py-4 space-y-3 max-h-80 overflow-y-auto">
+              <div className="flex items-center justify-between p-3 bg-conviction-800/30 rounded-lg hover:bg-conviction-800/50 transition cursor-pointer">
+                <div className="flex-1">
+                  <p className="font-semibold text-conviction-100 text-sm">Politics Markets</p>
+                  <p className="text-conviction-400 text-xs mt-1">Highest volume category</p>
+                </div>
+                <span className="text-accent-green font-bold">📈</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-conviction-800/30 rounded-lg hover:bg-conviction-800/50 transition cursor-pointer">
+                <div className="flex-1">
+                  <p className="font-semibold text-conviction-100 text-sm">Sports Events</p>
+                  <p className="text-conviction-400 text-xs mt-1">Real-time odds trading</p>
+                </div>
+                <span className="text-accent-green font-bold">📈</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-conviction-800/30 rounded-lg hover:bg-conviction-800/50 transition cursor-pointer">
+                <div className="flex-1">
+                  <p className="font-semibold text-conviction-100 text-sm">Finance Markets</p>
+                  <p className="text-conviction-400 text-xs mt-1">Economic predictions</p>
+                </div>
+                <span className="text-accent-green font-bold">📈</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-conviction-800/30 rounded-lg hover:bg-conviction-800/50 transition cursor-pointer">
+                <div className="flex-1">
+                  <p className="font-semibold text-conviction-100 text-sm">Tech & Crypto</p>
+                  <p className="text-conviction-400 text-xs mt-1">Emerging technologies</p>
+                </div>
+                <span className="text-whale-400 font-bold">📊</span>
+              </div>
+              <div className="pt-2">
+                <a href="https://polymarket.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-whale-500/20 hover:bg-whale-500/30 text-whale-400 transition text-sm font-medium">
+                  View All Trending →
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* New Markets */}
+          <div className="bg-conviction-900/50 rounded-xl border border-conviction-800 overflow-hidden">
+            <div className="px-6 py-4 border-b border-conviction-800">
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <Zap className="w-5 h-5 text-whale-500" />
+                New Markets
+              </h3>
+              <p className="text-conviction-400 text-sm mt-1">Recently launched</p>
+            </div>
+            <div className="px-6 py-4 space-y-3 max-h-80 overflow-y-auto">
+              <div className="flex items-center justify-between p-3 bg-conviction-800/30 rounded-lg hover:bg-conviction-800/50 transition cursor-pointer">
+                <div className="flex-1">
+                  <p className="font-semibold text-conviction-100 text-sm">🆕 Ireland Election 2025</p>
+                  <p className="text-conviction-400 text-xs mt-1">94% chance outcomes</p>
+                </div>
+                <span className="text-accent-green font-bold">NEW</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-conviction-800/30 rounded-lg hover:bg-conviction-800/50 transition cursor-pointer">
+                <div className="flex-1">
+                  <p className="font-semibold text-conviction-100 text-sm">🆕 Netherlands Parliament</p>
+                  <p className="text-conviction-400 text-xs mt-1">77% forecast probability</p>
+                </div>
+                <span className="text-accent-green font-bold">NEW</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-conviction-800/30 rounded-lg hover:bg-conviction-800/50 transition cursor-pointer">
+                <div className="flex-1">
+                  <p className="font-semibold text-conviction-100 text-sm">🆕 Trump Malaysia Visit</p>
+                  <p className="text-conviction-400 text-xs mt-1">66% prediction market</p>
+                </div>
+                <span className="text-accent-green font-bold">NEW</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-conviction-800/30 rounded-lg hover:bg-conviction-800/50 transition cursor-pointer">
+                <div className="flex-1">
+                  <p className="font-semibold text-conviction-100 text-sm">🆕 Gaza Humanitarian</p>
+                  <p className="text-conviction-400 text-xs mt-1">Real-time updates</p>
+                </div>
+                <span className="text-whale-400 font-bold">HOT</span>
+              </div>
+              <div className="pt-2">
+                <a href="https://polymarket.com/new" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-whale-500/20 hover:bg-whale-500/30 text-whale-400 transition text-sm font-medium">
+                  Explore New Markets →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Bottom Section - Metrics & Alerts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
           {/* Quick Stats */}
