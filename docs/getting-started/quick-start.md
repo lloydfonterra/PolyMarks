@@ -13,7 +13,7 @@ Get PolyMarks running locally in 5 minutes.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/polymarks.git
+git clone https://github.com/lloydfonterra/polymarks.git
 cd polymarks
 ```
 

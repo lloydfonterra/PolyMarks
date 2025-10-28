@@ -41,7 +41,7 @@ features/
 
 ```bash
 # Clone
-git clone https://github.com/YOUR_USERNAME/polymarks.git
+git clone https://github.com/lloydfonterra/polymarks.git
 cd polymarks
 
 # Install
