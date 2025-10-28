@@ -93,10 +93,10 @@ export default function LandingPage() {
 
             <div className="feature-card">
               <div className="feature-icon">🐋</div>
-              <h3>Solana Wallet Intelligence</h3>
+              <h3>Smart Wallet Intelligence</h3>
               <p>
-                Cross-chain intelligence via Helius. See wallet reputation scores
-                and track smart money from the Solana ecosystem.
+                Cross-chain intelligence starting with BSC. See wallet reputation scores
+                and track smart money across multiple blockchains.
               </p>
               <ul className="feature-list">
                 <li>Reputation scoring</li>
