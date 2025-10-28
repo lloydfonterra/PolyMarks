@@ -7,6 +7,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { ClientProviders } from '../components/ClientProviders'
 import { FloatingXButton } from '../components/FloatingXButton'
+import { FloatingGitBookButton } from '../components/FloatingGitBookButton'
 
 export const metadata: Metadata = {
   title: 'PolyMarks | Smart Polymarket Analytics',
@@ -48,7 +49,8 @@ export default function RootLayout({
             </div>
           </footer>
 
-          {/* Floating X (Twitter) Button */}
+          {/* Floating Buttons */}
+          <FloatingGitBookButton />
           <FloatingXButton />
         </ClientProviders>
       </body>
