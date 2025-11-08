@@ -23,7 +23,7 @@ referral/
 import { generateReferralUrl } from '@features/referral'
 
 const url = generateReferralUrl('event-12345')
-// https://polymarket.com/event/event-12345?utm_source=plymrkt&utm_medium=referral
+// https://polymarket.com/event/event-12345?utm_source=polymarks&utm_medium=referral
 ```
 
 ## Revenue

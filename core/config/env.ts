@@ -14,7 +14,7 @@ export const config = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   
   // Referral settings
-  referralSource: 'plymrkt',
+  referralSource: 'polymarks',
   
   // Feature flags (turn features on/off easily)
   features: {
