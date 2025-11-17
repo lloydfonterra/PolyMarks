@@ -111,8 +111,8 @@ MIT License - see [LICENSE](LICENSE)
 
 ## 🔗 Links
 
-- **Website:** [your-domain.com]
-- **Twitter:** [@polymarksBSC](https://x.com/polymarksBSC)
+- **Website:** [https://www.polymarks.com]
+- **Twitter:** [@PolymarksSol](https://x.com/PolymarksSol)
 - **Telegram Bot:** [@PolyMarksAlerts_bot](https://t.me/PolyMarksAlerts_bot)
 - **Polymarket:** [polymarket.com](https://polymarket.com)
 
