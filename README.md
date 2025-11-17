@@ -4,7 +4,7 @@
 
 Track smart money movements on Polymarket. See what top traders are betting on before the crowd.
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/polymarksBSC?style=social)](https://x.com/polymarksBSC)
+[![Twitter Follow](https://img.shields.io/twitter/follow/polymarksBSC?style=social)](https://x.com/PolymarksSol)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🚀 Features
